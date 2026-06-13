@@ -1,0 +1,36 @@
+<div class="container-fluid py-4" data-controller="notes">
+  <div class="row">
+
+    <div class="col-md-4 border-end">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">My Notes</h4>
+        <button class="btn btn-primary btn-sm" data-action="click->notes#createNewNote">+ New Note</button>
+      </div>
+
+      <div data-notes-target="list" class="list-group overflow-auto" style="max-height: 80vh;">
+      </div>
+    </div>
+
+    <div class="col-md-8">
+      <div data-notes-target="editor" class="d-none">
+        <input type="hidden" data-notes-target="id">
+
+        <div class="mb-3">
+          <input type="text" data-notes-target="title" class="form-control form-control-lg border-0 ps-0 fw-bold" placeholder="Untitled Note">
+        </div>
+
+        <div class="mb-3">
+          <textarea data-notes-target="content" class="form-control border-0 ps-0" rows="15" placeholder="Start writing..."></textarea>
+        </div>
+
+        <button class="btn btn-success" data-action="click->notes#saveNote">Save Note</button>
+        <button id="delete-note-btn" class="btn btn-outline-danger ms-2" data-action="click->notes#deleteNote">Delete Note</button>
+      </div>
+
+      <div data-notes-target="emptyState" class="text-center text-muted mt-5">
+        <p class="fs-5">Select a note or create a new one to get started.</p>
+      </div>
+
+    </div>
+  </div>
+</div>
