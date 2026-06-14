@@ -1,0 +1,12 @@
+{
+  "framework": null,
+  "buildCommand": null,
+  "outputDirectory": "public",
+  "routes": [
+    {
+      "src": "/service-worker",
+      "dest": "/service-worker.js"
+    }
+  ],
+  "cleanUrls": true
+}

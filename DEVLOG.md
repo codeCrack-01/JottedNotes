@@ -1,5 +1,29 @@
 # Development Log
 
+## 2026-06-14 — Vercel static deployment support
+
+### Summary
+Added a `vercel.json` config, a `bin/vercel-build` script, and a `lib/tasks/vercel.rake` Rake task to export Jotted as a fully static site for Vercel deployment. The Rake task renders all Rails ERB templates (home page, manifest, service worker) to static files in `public/` with correct fingerprinted asset paths from Propshaft. The build script chains dependency installation, CSS compilation, asset precompilation, and page export.
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `vercel.json` | **Created** — Vercel config: serves `public/` as static files, rewrites `/service-worker` → `/service-worker.js` |
+| `lib/tasks/vercel.rake` | **Created** — `rails vercel:export` renders `home/index` (with layout), `pwa/manifest`, `pwa/service-worker` to `public/` |
+| `bin/vercel-build` | **Created** — Executable build script: `bundle install`, `yarn install`, `yarn build:css:*`, `rails assets:precompile`, `rails vercel:export` |
+| `.gitignore` | Added `public/index.html`, `public/manifest.json`, `public/service-worker.js` (build artifacts) |
+
+### Key Implementation Details
+- Uses `ActionController::Base.render` directly via an anonymous controller class to avoid `ApplicationController` before_actions (`allow_browser`, `stale_when_importmap_changes`) that expect a real HTTP request.
+- Templates are rendered in `RAILS_ENV=production` with `SECRET_KEY_BASE_DUMMY=1`, so all asset URLs get correct Propshaft digest fingerprints.
+- The service-worker template is named `service-worker` (with hyphen), not `service_worker` — the Rake task must match the filename.
+- Vercel's `cleanUrls: true` removes `.html` extensions automatically.
+
+### Known Issues / Follow-up
+- Service worker precache list hardcodes non-digest paths (`/assets/application.css`, `/assets/application.js`) — these don't exist in the Propshaft-compiled output. The SW still works (fetch falls through to network), but the precache step will fail silently. Should update to use the actual digest filenames or switch to a versioned cache-bust approach.
+- Static export generates `public/index.html`, `public/manifest.json`, `public/service-worker.js` — these are gitignored to avoid conflicts with development (where the Rails server serves them via the PWA controller and `home#index`).
+
 ## 2026-06-14 — Progressive Web App (PWA) support
 
 ### Summary

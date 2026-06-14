@@ -119,4 +119,28 @@ The CI pipeline (see `config/ci.rb`) also runs RuboCop, bundler-audit, yarn audi
 
 ## Deployment
 
-Kamal-based Docker deployment (see `config/deploy.yml`). Targets a single host, uses SQLite databases (primary + cache + queue + cable), Solid Queue for background jobs, and Solid Cable for Action Cable.
+### Vercel (Static Export — recommended for client-side-first usage)
+
+Since Jotted stores all data client-side in IndexedDB, it can be deployed as a fully static site on Vercel's free tier.
+
+```bash
+# Build the static site locally
+bin/vercel-build
+
+# Deploy to Vercel
+npx vercel --prod
+```
+
+The build script (`bin/vercel-build`) runs:
+1. `bundle install` + `yarn install` (dependencies)
+2. `yarn build:css:compile` + `yarn build:css:prefix` (Bootstrap SCSS → CSS)
+3. `rails assets:precompile` (Propshaft fingerprinted assets → `public/assets/`)
+4. `rails vercel:export` (renders ERB → static files: `index.html`, `manifest.json`, `service-worker.js`)
+
+Configuration: `vercel.json` serves everything from `public/` with a rewrite for `/service-worker`.
+
+Prerequisites: Ruby 4.0.5, Node 22, Yarn, the Vercel CLI (`npm i -g vercel`).
+
+### Kamal (Docker)
+
+Alternative deployment via Kamal-based Docker (see `config/deploy.yml`). Targets a single host, uses SQLite databases (primary + cache + queue + cable), Solid Queue, and Solid Cable.
