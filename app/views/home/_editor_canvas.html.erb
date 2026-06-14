@@ -1,0 +1,26 @@
+<div data-notes-target="editor" class="d-none h-100 d-flex flex-column">
+  <input type="hidden" data-notes-target="id">
+
+  <div class="pb-3 mb-3 ide-border-bottom">
+    <input type="text" data-notes-target="title" class="form-control form-control-lg jb-input fw-bold fs-4" placeholder="Untitled_Note.md">
+  </div>
+
+  <div class="editor-workspace-wrapper mb-3">
+    <%= render "home/floating_dock" %>
+
+    <textarea data-notes-target="content"
+              data-action="input->notes#updateWordCount"
+              class="form-control jb-input h-100 font-monospace"
+              style="resize: none; font-size: 0.95rem; line-height: 1.6; padding-bottom: 50px; padding-top: 64px; color: var(--dynamic-text-color, var(--jb-text-main));"
+              placeholder="// Start writing your thoughts..."></textarea>
+
+    <div data-notes-target="wordCount" class="apple-status-pill">
+      0 words · 0 chars
+    </div>
+  </div>
+
+  <div class="pt-2">
+    <button class="btn btn-jb-success px-4" data-action="click->notes#saveNote">Commit Changes</button>
+    <button class="btn btn-outline-danger ms-2 px-3" style="border-color: var(--jb-border-color); color: var(--jb-text-muted);" data-action="click->notes#deleteNote">Delete</button>
+  </div>
+</div>

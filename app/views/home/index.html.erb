@@ -1,36 +1,18 @@
-<div class="container-fluid py-4" data-controller="notes">
-  <div class="row">
+<div class="container-fluid p-0" data-controller="notes">
+  <div class="row g-0">
 
-    <div class="col-md-4 border-end">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="mb-0">My Notes</h4>
-        <button class="btn btn-primary btn-sm" data-action="click->notes#createNewNote">+ New Note</button>
-      </div>
+    <%= render "home/sidebar" %>
 
-      <div data-notes-target="list" class="list-group overflow-auto" style="max-height: 80vh;">
-      </div>
-    </div>
+    <div class="col-md-9 ide-editor d-flex flex-column p-4">
 
-    <div class="col-md-8">
-      <div data-notes-target="editor" class="d-none">
-        <input type="hidden" data-notes-target="id">
+      <%= render "home/editor_canvas" %>
 
-        <div class="mb-3">
-          <input type="text" data-notes-target="title" class="form-control form-control-lg border-0 ps-0 fw-bold" placeholder="Untitled Note">
-        </div>
-
-        <div class="mb-3">
-          <textarea data-notes-target="content" class="form-control border-0 ps-0" rows="15" placeholder="Start writing..."></textarea>
-        </div>
-
-        <button class="btn btn-success" data-action="click->notes#saveNote">Save Note</button>
-        <button id="delete-note-btn" class="btn btn-outline-danger ms-2" data-action="click->notes#deleteNote">Delete Note</button>
-      </div>
-
-      <div data-notes-target="emptyState" class="text-center text-muted mt-5">
-        <p class="fs-5">Select a note or create a new one to get started.</p>
+      <div data-notes-target="emptyState" class="m-auto text-center" style="max-width: 400px;">
+        <div class="text-muted mb-2 font-monospace" style="font-size: 0.85rem;">JetBrains Notes v2026.1</div>
+        <p class="small" style="color: var(--jb-text-muted);">Select an architectural item from the tree projection or click the initialization button to start modifying a document node.</p>
       </div>
 
     </div>
+
   </div>
 </div>
