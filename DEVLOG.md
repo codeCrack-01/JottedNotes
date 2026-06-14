@@ -1,5 +1,29 @@
 # Development Log
 
+## 2026-06-14 — Mobile sidebar toggle button with slide-in overlay
+
+### Summary
+Added a hamburger-toggle button that appears at the top-left on mobile viewports. The sidebar now slides in as a fixed overlay with a backdrop when toggled, instead of taking the full screen editor. On desktop (≥768px) the sidebar remains always visible in normal flow.
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `app/views/home/index.html.erb` | Added fixed-position sidebar toggle button (`bi-list`); changed editor column to `col-12 col-md-9` so it takes full width on mobile; added `pt-5 pt-md-4` padding to clear the toggle |
+| `app/views/home/_sidebar.erb` | Added `data-notes-target="sidebar"` and class `sidebar-panel`; added backdrop div for mobile dismiss; added close button (`bi-x-lg`) visible only on mobile |
+| `app/javascript/controllers/notes_controller.js` | Added `"sidebar"` to static targets; added `toggleSidebar()` method; sidebar auto-closes on note selection when viewport < 768px |
+| `app/assets/stylesheets/notes_workspace.scss` | Added `.sidebar-toggle-btn` glassmorphism styling; added mobile breakpoint rules: sidebar as fixed overlay with `translateX` slide transition, backdrop with fade, close button styles |
+
+### Key Implementation Details
+- Uses `position: fixed` on mobile (removed from flex flow), so the editor column takes the full viewport width
+- Slide animation via `transform: translateX(-100%)` → `translateX(0)` with a 300ms cubic-bezier transition
+- `sidebar-visible` class is toggled on the sidebar element; the backdrop sits inside the sidebar panel with `z-index: -1` relative to the panel
+- On desktop (≥768px via `max-width: 767.98px` media query), the sidebar stays in normal Bootstrap grid flow — no changes to the existing layout
+- Selecting a note on mobile automatically closes the sidebar
+
+### Known Issues / Follow-up
+- Pre-existing test failure in `home_controller_test.rb` (routing stub, unrelated)
+
 ## 2026-06-14 — Migrated from colored text to colored highlights (highlighter markers)
 
 ### Summary

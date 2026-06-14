@@ -1,7 +1,14 @@
-<div class="col-md-3 ide-sidebar d-flex flex-column p-3">
+<div data-notes-target="sidebar" class="col-md-3 ide-sidebar sidebar-panel d-flex flex-column p-3">
+  <div data-action="click->notes#toggleSidebar" class="sidebar-backdrop d-md-none"></div>
+
   <div class="d-flex justify-content-between align-items-center pb-3 mb-2 ide-border-bottom">
     <span class="fw-bold text-uppercase tracking-wider" style="font-size: 0.75rem; color: var(--jb-text-muted);">Project Notes</span>
-    <button class="btn btn-jb-primary btn-sm px-2 py-1" style="font-size: 0.8rem;" data-action="click->notes#createNewNote">+ New Note</button>
+    <div class="d-flex align-items-center gap-2">
+      <button type="button" class="btn btn-sm d-md-none sidebar-close-btn p-0 d-flex align-items-center justify-content-center" data-action="click->notes#toggleSidebar" aria-label="Close sidebar">
+        <i class="bi bi-x-lg" style="font-size: 0.85rem;"></i>
+      </button>
+      <button class="btn btn-jb-primary btn-sm px-2 py-1" style="font-size: 0.8rem;" data-action="click->notes#createNewNote">+ New Note</button>
+    </div>
   </div>
 
   <div data-notes-target="list" class="flex-grow-1 overflow-auto">

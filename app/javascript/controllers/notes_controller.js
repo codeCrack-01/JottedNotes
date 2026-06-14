@@ -102,7 +102,7 @@ function configureTrixAttributes() {
 // 3. MAIN WORKSPACE UI CONTROLLER
 // =========================================================================
 export default class extends Controller {
-  static targets = ["list", "editor", "id", "title", "content", "emptyState", "wordCount", "colorMenu"]
+  static targets = ["list", "editor", "id", "title", "content", "emptyState", "wordCount", "colorMenu", "sidebar"]
 
   async connect() {
     this.currentZoom = 0.95
@@ -122,6 +122,12 @@ export default class extends Controller {
 
   onTrixInit() {
     this.updateWordCount()
+  }
+
+  toggleSidebar() {
+    if (this.hasSidebarTarget) {
+      this.sidebarTarget.classList.toggle("sidebar-visible")
+    }
   }
 
   get trixEditor() {
@@ -239,6 +245,10 @@ export default class extends Controller {
       this.updateWordCount(this.trixEditor)
     }
     this.loadNotes()
+
+    if (window.innerWidth < 768 && this.hasSidebarTarget) {
+      this.sidebarTarget.classList.remove("sidebar-visible")
+    }
   }
 
   async saveNote() {
