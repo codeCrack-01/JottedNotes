@@ -1,5 +1,32 @@
 # Development Log
 
+## 2026-06-14 — Progressive Web App (PWA) support
+
+### Summary
+Turned Jotted into an installable PWA. Wired up Rails 8's built-in PWA view templates (manifest, service worker) with a new controller and routes. Added a Cache-First service worker for offline-capable static assets, a Network-First strategy for the root page with offline fallback, and matched theme colors to the JetBrains IDE palette.
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `app/controllers/pwa_controller.rb` | **Created** — serves manifest (JSON) and service worker (JS) without layout |
+| `config/routes.rb` | Added `GET /manifest` and `GET /service-worker` routes |
+| `app/views/pwa/manifest.json.erb` | Updated `theme_color` → `#3574f0` (accent blue), `background_color` → `#f8f9fa` (canvas gray), added `short_name`, meaningful `description` |
+| `app/views/pwa/service-worker.js` | Replaced comment stub with full service worker: pre-caches app shell on install, Cache-First for static assets, Network-First for `/` with offline fallback, cleans old caches on activate |
+| `app/views/layouts/application.html.erb` | Uncommented and wired manifest link; added service worker registration script at end of `<body>` |
+| `public/offline.html` | **Created** — minimal offline fallback page shown when the root page can't be fetched |
+
+### Key Implementation Details
+- **Cache strategy**: Cache-First for versioned assets (CSS/JS under `/assets/`) and icons; Network-First for the root page `/` so fresh HTML is always served when online, with cache fallback when offline.
+- **Cache name**: `jotted-v1` — bump the version number to force a full refresh of cached assets.
+- **Controller**: Uses `layout false` to serve raw JSON/JS without HTML wrapping; `skip_before_action :verify_authenticity_token` on the service worker action since it's fetched by the browser, not a user-initiated request.
+- **Service worker scope**: Registered with default scope (`/`), covering the entire app.
+- **No splash screen config**: The existing 512×512 `public/icon.png` is reused; a maskable variant uses the same asset.
+
+### Known Issues / Follow-up
+- Future cloud sync support will need a revised service worker strategy (e.g. Network-First or background sync for API calls) — the current Cache-First approach is optimized for the fully client-side architecture.
+- Pre-existing test failure in `home_controller_test.rb` (routing stub, unrelated)
+
 ## 2026-06-14 — Mobile sidebar toggle button with slide-in overlay
 
 ### Summary
