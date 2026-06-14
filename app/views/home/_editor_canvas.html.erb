@@ -1,25 +1,70 @@
-<div data-notes-target="editor" class="d-none h-100 d-flex flex-column">
+<style>
+    trix-toolbar {
+        display: none !important;
+    }
+
+    trix-editor {
+        flex-grow: 1;
+        overflow-y: auto !important;
+        border: 1px solid transparent !important;
+        padding: 20px 16px 40px 16px !important;
+        line-height: 1.6;
+        color: var(--dynamic-text-color, var(--jb-text-main));
+        background: transparent;
+        max-height: calc(100vh - 240px);
+
+        /* ZOOM FIX: Read from a dynamic style property, defaulting to 0.95rem */
+        font-size: var(--jb-editor-font-size, 0.95rem) !important;
+    }
+
+    trix-editor:focus {
+        border-color: var(--jb-border-color, #d3d3d3) !important;
+        box-shadow: 0 0 0 1px var(--jb-border-color, #e0e0e0) !important;
+        outline: none !important;
+    }
+
+    .canvas-relative-container {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        width: 100%;
+        min-height: 0;
+        overflow: hidden;
+    }
+</style>
+
+<div data-notes-target="editor" class="d-none h-100 d-flex flex-column" style="max-height: 100vh; min-height: 0; overflow: hidden;">
   <input type="hidden" data-notes-target="id">
 
-  <div class="pb-3 mb-3 ide-border-bottom">
+  <div class="pb-3 mb-3 ide-border-bottom flex-shrink-0">
     <input type="text" data-notes-target="title" class="form-control form-control-lg jb-input fw-bold fs-4" placeholder="Untitled_Note.md">
   </div>
 
-  <div class="editor-workspace-wrapper mb-3">
-    <%= render "home/floating_dock" %>
+  <div class="editor-workspace-wrapper mb-3 d-flex position-relative align-items-stretch flex-grow-1" style="min-height: 0; overflow: hidden;">
 
-    <textarea data-notes-target="content"
-              data-action="input->notes#updateWordCount"
-              class="form-control jb-input h-100 font-monospace"
-              style="resize: none; font-size: 0.95rem; line-height: 1.6; padding-bottom: 50px; padding-top: 64px; color: var(--dynamic-text-color, var(--jb-text-main));"
-              placeholder="// Start writing your thoughts..."></textarea>
+    <div class="canvas-relative-container">
+      <input type="hidden" id="note_content_hidden" data-notes-target="content">
 
-    <div data-notes-target="wordCount" class="apple-status-pill">
-      0 words · 0 chars
+      <trix-editor input="note_content_hidden"
+                   class="trix-content font-monospace"
+                   placeholder="// Start writing your thoughts or code expressions natively..."
+                   data-action="trix-change->notes#updateWordCount trix-initialize->notes#onTrixInit"></trix-editor>
+
+      <div class="pt-2 d-flex justify-content-between align-items-center border-top mt-2 flex-shrink-0" style="border-color: var(--jb-border-color) !important;">
+        <div data-notes-target="wordCount" class="apple-status-pill text-muted small" style="font-size: 0.8rem;">
+          0 words · 0 chars
+        </div>
+      </div>
     </div>
+
+    <div class="ps-2 position-relative flex-shrink-0" style="z-index: 1050;">
+      <%= render "home/floating_dock" %>
+    </div>
+
   </div>
 
-  <div class="pt-2">
+  <div class="pt-2 ide-border-top mt-auto flex-shrink-0">
     <button class="btn btn-jb-success px-4" data-action="click->notes#saveNote">Commit Changes</button>
     <button class="btn btn-outline-danger ms-2 px-3" style="border-color: var(--jb-border-color); color: var(--jb-text-muted);" data-action="click->notes#deleteNote">Delete</button>
   </div>

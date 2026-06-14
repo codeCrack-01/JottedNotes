@@ -1,33 +1,36 @@
 <div class="apple-floating-dock">
-  <button class="btn dock-tool-btn" title="Text Color" data-action="click->notes#toggleColorMenu">
-    <svg viewBox="0 0 22 22"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3.5 4c-.83 0-1.5-.67-1.5-1.5S17.17 9 18 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+  <button class="btn dock-tool-btn" title="Highlight Color" data-action="click->notes#toggleColorMenu">
+    <svg viewBox="0 0 24 24"><path d="M18.36 5.64c-1.95-1.96-5.11-1.96-7.07 0L9.88 7.05 16.94 14.11 18.36 12.7c1.96-1.96 1.96-5.12 0-7.07zM8.46 8.46L3.34 13.57 10.41 20.69 15.53 15.57 8.46 8.46z"/></svg>
   </button>
 
-  <div data-notes-target="colorMenu" data-action="click@window->notes#closeColorMenuOutside" class="d-none position-absolute bg-white border rounded-3 p-2 shadow-sm d-flex flex-column gap-2" style="left: -50px; top: 0; z-index: 1060;">
-    <button type="button" class="border-0 rounded-circle" style="width: 24px; height: 24px; background-color: #191c1e;" data-action="click->notes#changeColor" data-color="#191c1e" title="Default Dark"></button>
-    <button type="button" class="border-0 rounded-circle" style="width: 24px; height: 24px; background-color: #3574f0;" data-action="click->notes#changeColor" data-color="#3574f0" title="JetBrains Blue"></button>
-    <button type="button" class="border-0 rounded-circle" style="width: 24px; height: 24px; background-color: #e55757;" data-action="click->notes#changeColor" data-color="#e55757" title="Apple Red"></button>
-    <button type="button" class="border-0 rounded-circle" style="width: 24px; height: 24px; background-color: #59a869;" data-action="click->notes#changeColor" data-color="#59a869" title="Commit Green"></button>
+  <div data-notes-target="colorMenu" data-action="click@window->notes#closeColorMenuOutside" class="d-none position-absolute bg-white border rounded-3 p-2 shadow-sm d-flex flex-column gap-2" style="left: auto; right: 100%; top: 0; z-index: 1060;">
+    <button type="button" class="border-0 rounded-circle" style="width: 24px; height: 24px; background-color: rgba(255, 213, 79, 0.4);" data-action="click->notes#applyFormat" data-format-type="highlight" data-value="rgba(255, 213, 79, 0.4)" title="Yellow Highlighter"></button>
+    <button type="button" class="border-0 rounded-circle" style="width: 24px; height: 24px; background-color: rgba(144, 202, 249, 0.4);" data-action="click->notes#applyFormat" data-format-type="highlight" data-value="rgba(144, 202, 249, 0.4)" title="Blue Highlighter"></button>
+    <button type="button" class="border-0 rounded-circle" style="width: 24px; height: 24px; background-color: rgba(239, 154, 154, 0.4);" data-action="click->notes#applyFormat" data-format-type="highlight" data-value="rgba(239, 154, 154, 0.4)" title="Red Highlighter"></button>
+    <button type="button" class="border-0 rounded-circle" style="width: 24px; height: 24px; background-color: rgba(165, 214, 167, 0.4);" data-action="click->notes#applyFormat" data-format-type="highlight" data-value="rgba(165, 214, 167, 0.4)" title="Green Highlighter"></button>
   </div>
 
   <div class="dock-divider"></div>
 
-  <button class="dock-tool-btn" title="Header Element" data-action="click->notes#insertMarkdown" data-md-type="header">
+  <button class="dock-tool-btn" title="Header Element" data-action="click->notes#applyFormat" data-format-type="heading1">
     <svg viewBox="0 0 24 24"><path d="M19 12h-6V5h-2v7H5V5H3v14h2v-5h6v5h2v-5h6v5h2V5h-2z"/></svg>
   </button>
-  <button class="dock-tool-btn" title="Bold Expression" data-action="click->notes#insertMarkdown" data-md-type="bold">
+
+  <button class="dock-tool-btn" title="Bold Expression" data-action="click->notes#applyFormat" data-format-type="bold">
     <svg viewBox="0 0 24 24"><path d="M15.6 10.79c.97-.67 1.65-1.77 1.65-2.79 0-2.26-1.75-4-4-4H7v14h7.04c2.09 0 3.71-1.7 3.71-3.79 0-1.52-.86-2.82-2.15-3.42zM10 6.5h3c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-3v-3zm3.5 11H10v-3h3.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5z"/></svg>
   </button>
-  <button class="dock-tool-btn" title="Code Block Syntax" data-action="click->notes#insertMarkdown" data-md-type="code">
+
+  <button class="dock-tool-btn" title="Code Block Syntax" data-action="click->notes#applyFormat" data-format-type="code">
     <svg viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
   </button>
 
   <div class="dock-divider"></div>
 
-  <button class="dock-tool-btn" title="Scale Up Font" data-action="click->notes#adjustFontSize" data-size-change="up">
+  <button class="dock-tool-btn dock-scale-btn" title="Scale Up Font" data-action="click->notes#applyFormat" data-format-type="size" data-value="up">
     <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
   </button>
-  <button class="dock-tool-btn" title="Scale Down Font" data-action="click->notes#adjustFontSize" data-size-change="down">
+
+  <button class="dock-tool-btn dock-scale-btn" title="Scale Down Font" data-action="click->notes#applyFormat" data-format-type="size" data-value="down">
     <svg viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"/></svg>
   </button>
 </div>

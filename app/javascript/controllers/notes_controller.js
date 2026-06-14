@@ -1,240 +1,266 @@
 import { Controller } from "@hotwired/stimulus"
+import "trix"
 
+// =========================================================================
+// 1. STANDALONE STORAGE ENGINE (IndexedDB Service)
+// =========================================================================
+class EditorDB {
+  constructor(dbName = "JottedDB", version = 2, storeName = "notes") {
+    this.dbName = dbName
+    this.dbVersion = version
+    this.storeName = storeName
+    this.db = null
+  }
+
+  init() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(this.dbName, this.dbVersion)
+
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result
+        if (db.objectStoreNames.contains(this.storeName)) {
+          db.deleteObjectStore(this.storeName)
+        }
+        db.createObjectStore(this.storeName, { keyPath: "id" })
+      }
+
+      request.onsuccess = (event) => {
+        this.db = event.target.result
+        resolve(this.db)
+      }
+
+      request.onerror = (event) => {
+        console.error("IndexedDB initialization error:", event.target.errorCode)
+        reject(event.target.errorCode)
+      }
+    })
+  }
+
+  getAllNotes() {
+    return new Promise((resolve) => {
+      if (!this.db) return resolve([])
+      const transaction = this.db.transaction([this.storeName], "readonly")
+      const store = transaction.objectStore(this.storeName)
+      const request = store.getAll()
+      request.onsuccess = () => resolve(request.result || [])
+    })
+  }
+
+  getNote(id) {
+    return new Promise((resolve) => {
+      if (!this.db) return resolve(null)
+      const transaction = this.db.transaction([this.storeName], "readonly")
+      const store = transaction.objectStore(this.storeName)
+      const request = store.get(id)
+      request.onsuccess = () => resolve(request.result)
+    })
+  }
+
+  saveNote(noteData) {
+    return new Promise((resolve) => {
+      if (!this.db) return resolve(false)
+      const transaction = this.db.transaction([this.storeName], "readwrite")
+      const store = transaction.objectStore(this.storeName)
+      const request = store.put(noteData)
+      request.onsuccess = () => resolve(true)
+    })
+  }
+
+  deleteNote(id) {
+    return new Promise((resolve) => {
+      if (!this.db) return resolve(false)
+      const transaction = this.db.transaction([this.storeName], "readwrite")
+      const store = transaction.objectStore(this.storeName)
+      const request = store.delete(id)
+      request.onsuccess = () => resolve(true)
+    })
+  }
+}
+
+// =========================================================================
+// 2. GLOBAL TRIX SCHEMA REGISTRATION
+// =========================================================================
+if (window.Trix) {
+  configureTrixAttributes()
+} else {
+  document.addEventListener("trix-initialize", () => {
+    configureTrixAttributes()
+  })
+}
+
+function configureTrixAttributes() {
+  if (window.Trix.config && !window.Trix.config.textAttributes.highlightColor) {
+    window.Trix.config.textAttributes.highlightColor = {
+      styleProperty: "backgroundColor",
+      inheritable: true
+    }
+    console.log("🎯 Trix Global Highlight Schema Whitelist injected!");
+  }
+}
+
+// =========================================================================
+// 3. MAIN WORKSPACE UI CONTROLLER
+// =========================================================================
 export default class extends Controller {
   static targets = ["list", "editor", "id", "title", "content", "emptyState", "wordCount", "colorMenu"]
 
-  connect() {
-    this.dbName = "JottedDB"
-    // Bumping version to 2 triggers the 'onupgradeneeded' lifecycle for our schema change
-    this.dbVersion = 2
-    this.storeName = "notes"
-    this.db = null
+  async connect() {
+    this.currentZoom = 0.95
 
-    this.initDatabase()
-  }
-
-  updateWordCount() {
-    const text = this.contentTarget.value.trim()
-
-    // Characters count is straightforward
-    const charCount = text.length
-
-    // Words count requires splitting by spaces/newlines while filtering out accidental double-spaces
-    const wordCount = text === "" ? 0 : text.split(/\s+/).filter(word => word.length > 0).length
-
-    // Update the pill text content
-    this.wordCountTarget.textContent = `${wordCount} words · ${charCount} chars`
-  }
-
-  // Append or Wrap selected text with Markdown tags
-  insertMarkdown(event) {
-    const type = event.currentTarget.dataset.mdType
-    const textarea = this.contentTarget
-
-    // Find where the cursor currently is sitting
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const text = textarea.value
-
-    let insertedText = ""
-    let newCursorPos = start
-
-    if (type === "header") {
-      insertedText = "\n# "
-      newCursorPos += 3
-    } else if (type === "bold") {
-      const selectedText = text.substring(start, end)
-      if (selectedText.length > 0) {
-        insertedText = `**${selectedText}**`
-        newCursorPos = start + insertedText.length
-      } else {
-        insertedText = `****`
-        newCursorPos = start + 2 // Places cursor perfectly inside the ** here **
-      }
-    } else if (type === "code") {
-      insertedText = "\n```javascript\n\n```\n"
-      newCursorPos += 15
+    // Initialize the storage instance smoothly
+    this.storage = new EditorDB()
+    try {
+      await this.storage.init()
+      this.loadNotes()
+    } catch (e) {
+      console.error("Failed to connect to storage engine:", e)
     }
 
-    // Replace text area value around insertion points
-    textarea.value = text.substring(0, start) + insertedText + text.substring(end)
+    this.onTrixChange = (event) => this.updateWordCount(event.target)
+    this.element.addEventListener("trix-change", this.onTrixChange)
+  }
 
-    // Put focus back on the text container and place cursor elegantly
-    textarea.focus()
-    textarea.setSelectionRange(newCursorPos, newCursorPos)
-
-    // Refresh our counters & ensure state is registered
+  onTrixInit() {
     this.updateWordCount()
   }
 
-  // Dynamically scale font styles inside the editor field
-  adjustFontSize(event) {
-    const change = event.currentTarget.dataset.sizeChange
-    const textarea = this.contentTarget
-
-    // Grab current font size or fallback to standard 15px
-    let currentSize = parseFloat(window.getComputedStyle(textarea).fontSize) || 15
-
-    if (change === "up") {
-      currentSize += 2
-    } else if (change === "down" && currentSize > 10) {
-      currentSize -= 2
-    }
-
-    textarea.style.fontSize = `${currentSize}px`
+  get trixEditor() {
+    return this.element.querySelector("trix-editor")
   }
 
-  // Toggle the visibility of our floating color circles panel
+  // --- INTERFACE EVENTS & TEXT FORMATTING ---
+  applyFormat(event) {
+    const format = event.currentTarget.dataset.formatType
+    const value = event.currentTarget.dataset.value
+
+    console.log(`💥 DOCK CLICKED: Type = "${format}", Value = "${value}"`);
+
+    if (!this.trixEditor) {
+      console.error("❌ ERROR: Could not find trix-editor node in DOM!");
+      return
+    }
+    const editor = this.trixEditor.editor
+    const range = format === "highlight" ? editor.getSelectedRange() : null
+    this.trixEditor.focus()
+    if (range) {
+      editor.setSelectedRange(range)
+    }
+
+    switch(format) {
+      case "bold":
+        editor.attributeIsActive("bold") ? editor.deactivateAttribute("bold") : editor.activateAttribute("bold")
+        break
+      case "heading1":
+        editor.attributeIsActive("heading1") ? editor.deactivateAttribute("heading1") : editor.activateAttribute("heading1")
+        break
+      case "code":
+        editor.attributeIsActive("code") ? editor.deactivateAttribute("code") : editor.activateAttribute("code")
+        break
+      case "highlight":
+        editor.activateAttribute("highlightColor", value)
+        editor.setSelectedRange([range[1], range[1]])
+        editor.deactivateAttribute("highlightColor")
+
+        if (this.hasColorMenuTarget) this.colorMenuTarget.classList.add("d-none")
+        break
+      case "size":
+        if (value === "up" && this.currentZoom < 1.5) this.currentZoom += 0.10
+        if (value === "down" && this.currentZoom > 0.75) this.currentZoom -= 0.10
+        this.trixEditor.style.setProperty("--jb-editor-font-size", `${this.currentZoom}rem`)
+        break
+    }
+  }
+
   toggleColorMenu() {
     this.colorMenuTarget.classList.toggle("d-none")
   }
 
-  // Apply the selected hex value directly to the editor font layout
-  changeColor(event) {
-    const selectedColor = event.currentTarget.dataset.color
-
-    if (selectedColor) {
-      // This updates the CSS variable directly, overriding any Bootstrap text priorities!
-      this.contentTarget.style.setProperty('--dynamic-text-color', selectedColor)
-    }
-
-    this.colorMenuTarget.classList.add("d-none")
-  }
-
   closeColorMenuOutside(event) {
-    // If the click happened inside the color picker button or the menu itself, do nothing
     if (this.colorMenuTarget.contains(event.target) || event.target.closest('[data-action*="toggleColorMenu"]')) {
       return
     }
-    // Otherwise, hide it!
     this.colorMenuTarget.classList.add("d-none")
   }
 
-  initDatabase() {
-    const request = indexedDB.open(this.dbName, this.dbVersion)
+  updateWordCount(editorElementOrEvent = null) {
+    let targetEditor = editorElementOrEvent instanceof Event ? editorElementOrEvent.target : editorElementOrEvent
+    const editor = targetEditor || this.trixEditor
+    if (!editor || !editor.editor) return
 
-    request.onupgradeneeded = (event) => {
-      const db = event.target.result
-
-      // If the old integer-based store exists, drop it so we can create the fresh UUID-based one
-      if (db.objectStoreNames.contains(this.storeName)) {
-        db.deleteObjectStore(this.storeName)
-      }
-
-      // Create the store expecting a manual unique 'id' string (no auto-increment)
-      db.createObjectStore(this.storeName, { keyPath: "id" })
-    }
-
-    request.onsuccess = (event) => {
-      this.db = event.target.result
-      this.loadNotes()
-    }
-
-    request.onerror = (event) => {
-      console.error("IndexedDB open error:", event.target.errorCode)
+    const text = editor.editor.getDocument().toString().trim()
+    const wordCount = text ? text.split(/\s+/).length : 0
+    if (this.hasWordCountTarget) {
+      this.wordCountTarget.textContent = `${wordCount} words · ${text.length} chars`
     }
   }
 
-  loadNotes() {
-    const transaction = this.db.transaction([this.storeName], "readonly")
-    const store = transaction.objectStore(this.storeName)
-    const request = store.getAll()
+  // --- VIEW ORCHESTRATION ---
+  async loadNotes() {
+    const notes = await this.storage.getAllNotes()
+    const activeId = this.idTarget.value
 
-    request.onsuccess = () => {
-      const notes = request.result
-      const activeId = this.idTarget.value // Remember what note is currently open
-
-      this.listTarget.innerHTML = notes.map(note => {
-        // If this note is the one currently loaded in the editor, highlight it
-        const isActive = note.id === activeId ? "active-note" : ""
-
-        return `
-          <button type="button" 
-                  class="jb-tree-item ${isActive}" 
-                  data-action="click->notes#selectNote" 
-                  data-note-id="${note.id}">
-            <span class="d-block text-truncate" style="font-size: 0.9rem;">📄 ${note.title || 'Untitled_Note.md'}</span>
-          </button>
-        `
-      }).join("")
-    }
+    this.listTarget.innerHTML = notes.map(note => {
+      const isActive = note.id === activeId ? "active-note" : ""
+      return `
+        <button type="button" class="jb-tree-item ${isActive}" data-action="click->notes#selectNote" data-note-id="${note.id}">
+          <span class="d-block text-truncate" style="font-size: 0.9rem;">📄 ${note.title || 'Untitled_Note.md'}</span>
+        </button>
+      `
+    }).join("")
   }
 
   createNewNote() {
     this.emptyStateTarget.classList.add("d-none")
     this.editorTarget.classList.remove("d-none")
 
-    // Generate a secure, standard browser native UUID string right here!
     this.idTarget.value = crypto.randomUUID()
+    this.titleTarget.value = "Untitled_Note.md"
 
-    this.titleTarget.value = ""
-    this.contentTarget.value = ""
-    this.contentTarget.focus()
-
-    this.updateWordCount()
+    if (this.trixEditor) {
+      this.trixEditor.editor.loadHTML("")
+      this.updateWordCount(this.trixEditor)
+    }
+    this.titleTarget.focus()
   }
 
-  selectNote(event) {
-    // Note IDs are strings now, no need for parseInt()
+  async selectNote(event) {
     const id = event.currentTarget.dataset.noteId
-    const transaction = this.db.transaction([this.storeName], "readonly")
-    const store = transaction.objectStore(this.storeName)
-    const request = store.get(id)
+    const note = await this.storage.getNote(id)
+    if (!note) return
 
-    request.onsuccess = () => {
-      const note = request.result
-      if (!note) return
+    this.emptyStateTarget.classList.add("d-none")
+    this.editorTarget.classList.remove("d-none")
 
-      this.emptyStateTarget.classList.add("d-none")
-      this.editorTarget.classList.remove("d-none")
+    this.idTarget.value = note.id
+    this.titleTarget.value = note.title
 
-      this.idTarget.value = note.id
-      this.titleTarget.value = note.title
-      this.contentTarget.value = note.content
-
-      this.loadNotes()
+    if (this.trixEditor) {
+      this.trixEditor.editor.loadHTML(note.content || "")
+      this.updateWordCount(this.trixEditor)
     }
-
-    this.updateWordCount()
+    this.loadNotes()
   }
 
-  saveNote() {
-    let id = this.idTarget.value
-
-    // Guard clause: If someone hits save on an un-initialized note context without a UUID
-    if (!id) {
-      id = crypto.randomUUID()
-      this.idTarget.value = id
-    }
-
-    const note = {
-      id: id, // Explicitly assign our string UUID
-      title: this.titleTarget.value,
+  async saveNote() {
+    const noteData = {
+      id: this.idTarget.value,
+      title: this.titleTarget.value || "Untitled_Note.md",
       content: this.contentTarget.value,
       updatedAt: new Date().toISOString()
     }
 
-    const transaction = this.db.transaction([this.storeName], "readwrite")
-    const store = transaction.objectStore(this.storeName)
-    const request = store.put(note)
-
-    request.onsuccess = () => {
-      this.loadNotes()
-    }
+    await this.storage.saveNote(noteData)
+    console.log("Note saved successfully.")
+    this.loadNotes()
   }
 
-  deleteNote() {
+  async deleteNote() {
     const id = this.idTarget.value
     if (!id) return
 
-    const transaction = this.db.transaction([this.storeName], "readwrite")
-    const store = transaction.objectStore(this.storeName)
-    const request = store.delete(id) // Passing the string UUID directly
-
-    request.onsuccess = () => {
-      this.loadNotes()
-      this.editorTarget.classList.add("d-none")
-      this.emptyStateTarget.classList.remove("d-none")
-    }
+    await this.storage.deleteNote(id)
+    this.loadNotes()
+    this.editorTarget.classList.add("d-none")
+    this.emptyStateTarget.classList.remove("d-none")
   }
 }

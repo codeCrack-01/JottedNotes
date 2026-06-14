@@ -157,6 +157,11 @@ body {
     fill: currentColor;
 }
 
+.dock-scale-btn svg {
+    width: 26px;
+    height: 26px;
+}
+
 .dock-divider {
     background-color: rgba(0, 0, 0, 0.08);
 }
@@ -178,3 +183,4 @@ body {
         margin: 4px auto;
     }
 }
+
