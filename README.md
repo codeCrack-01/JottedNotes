@@ -80,8 +80,9 @@ This starts the Rails server on port 3000 and the CSS watcher for Bootstrap/SCSS
 
 ### Client-Side Persistence
 
-Notes are stored in IndexedDB under database `JottedDB` (version 2), object store `notes`. Each note has:
+Notes are stored in IndexedDB under database `JottedDB` (version 2), with a single object store: `notes`.
 
+**`notes` store** (keyPath: `id`):
 - `id` (UUID, generated via `crypto.randomUUID()`)
 - `title` (string, defaults to "Untitled_Note.md")
 - `content` (HTML string from Trix's hidden input)

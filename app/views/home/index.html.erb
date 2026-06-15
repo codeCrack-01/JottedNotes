@@ -5,7 +5,31 @@
           style="z-index: 1060;">
     <i class="bi bi-list fs-4"></i>
   </button>
+<div class="container-fluid p-0" data-controller="notes">
+  <button data-action="click->notes#toggleSidebar"
+          class="btn sidebar-toggle-btn d-md-none position-fixed top-0 start-0 mt-3 ms-3"
+          type="button"
+          style="z-index: 1060;">
+    <i class="bi bi-list fs-4"></i>
+  </button>
 
+  <div class="row g-0">
+
+    <%= render "home/sidebar" %>
+
+    <div class="col-12 col-md-9 ide-editor d-flex flex-column p-4 pt-5 pt-md-4">
+
+      <%= render "home/editor_canvas" %>
+
+      <div data-notes-target="emptyState" class="m-auto text-center" style="max-width: 400px;">
+        <div class="text-muted mb-2 font-monospace" style="font-size: 0.85rem;">JetBrains Notes v2026.1</div>
+        <p class="small" style="color: var(--jb-text-muted);">Select an architectural item from the tree projection or click the initialization button to start modifying a document node.</p>
+      </div>
+
+    </div>
+
+  </div>
+</div>
   <div class="row g-0">
 
     <%= render "home/sidebar" %>

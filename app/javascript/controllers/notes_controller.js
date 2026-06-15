@@ -107,7 +107,6 @@ export default class extends Controller {
   async connect() {
     this.currentZoom = 0.95
 
-    // Initialize the storage instance smoothly
     this.storage = new EditorDB()
     try {
       await this.storage.init()
@@ -170,7 +169,6 @@ export default class extends Controller {
         if (this.hasColorMenuTarget) this.colorMenuTarget.classList.add("d-none")
         break
       case "size":
-
         if (value === "up" && this.currentZoom < 1.5) this.currentZoom += 0.10
         if (value === "down" && this.currentZoom > 0.75) this.currentZoom -= 0.10
         this.trixEditor.style.setProperty("--jb-editor-font-size", `${this.currentZoom}rem`)

@@ -8,7 +8,7 @@ namespace :vercel do
     pages = {
       "home/index" => { layout: "application", output: "public/index.html" },
       "pwa/manifest" => { layout: false, output: "public/manifest.json" },
-      "pwa/service-worker" => { layout: false, output: "public/service-worker.js" }
+      "pwa/service_worker" => { layout: false, output: "public/service-worker.js" }
     }
 
     pages.each do |template, config|

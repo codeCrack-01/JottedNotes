@@ -1,5 +1,58 @@
 # Development Log
 
+## 2026-06-15 — Reverted notebooks feature, simplified sidebar to original v1
+
+### Summary
+The notebook implementation (scattered notes + notebook accordions) was broken — notes created via the UI weren't displaying in the sidebar, and notebooks couldn't be created either. Root cause was a stale `public/index.html` build artifact being served instead of the live ERB (fixed in previous session), plus the notebook code itself adding complexity without working correctly. Reverted the sidebar, controller, and CSS to the pre-notebook v1 state — a single "Project Notes" header with a "+ New Note" button and a flat note list. Also fixed a service-worker 404 caused by a template filename mismatch (hyphen vs underscore in `app/views/pwa/`).
+
+### Key Implementation Details
+- **Sidebar**: restored `data-notes-target="list"` for all notes; removed `scatteredList` and `notebookList` targets; removed the Scattered Notes and Notebooks sections
+- **Controller**: DB version back to 2 (no notebooks store); `loadSidebar()` → `loadNotes()` rendering into `listTarget`; removed all notebook CRUD, accordion toggle, drag-and-drop, and long-press handlers; `saveNote()` / `createNewNote()` / `selectNote()` no longer touch `notebookId`
+- **CSS**: removed notebook accordion styles, scattered-notes-list, drag-over outlines, and the `.jb-tree-item` flex-override rules added for the notebook sidebar
+- **Service worker**: renamed `service-worker.js` → `service_worker.js` to match the controller action name; updated `lib/tasks/vercel.rake` template reference accordingly
+- **Stale build artifacts**: removed `public/index.html`, `public/manifest.json`, `public/service-worker.js` that were being served instead of live ERB templates
+
+### Files Modified
+| File | Change |
+|------|--------|
+| `app/views/home/_sidebar.erb` | Reverted to original v1: single "Project Notes" header with "+ New Note" button and `data-notes-target="list"` |
+| `app/javascript/controllers/notes_controller.js` | Reverted to v1: DB v2, `loadNotes()` into `listTarget`, no notebook methods. Removed `scatteredList`/`notebookList` targets |
+| `app/assets/stylesheets/notes_workspace.scss` | Reverted to v1: removed notebook accordion, scattered notes, drag-and-drop, and flex-override rules |
+| `lib/tasks/vercel.rake` | Updated template reference from `pwa/service-worker` to `pwa/service_worker` |
+
+---
+
+## 2026-06-15 — Notebooks: accordion sidebar, drag-and-drop, IndexedDB v3
+
+### Summary
+Added notebook grouping to organize notes into named collections. The sidebar is split into two sections: "Scattered Notes" (notes without a notebook) at the top, and "Notebooks" below. Notebooks use a single-expand accordion — clicking a notebook reveals its notes inline. Notes can be dragged between notebooks or to the scattered section. Long-press (mobile) or right-click (desktop) on a notebook header triggers a confirm dialog for deletion, which moves all contained notes back to scattered.
+
+### Key Implementation Details
+- **IndexedDB v3**: New `notebooks` object store (keyPath: `id`) with fields `id`, `title`, `createdAt`, `updatedAt`. `notebookId` index added to existing `notes` store. The `onupgradeneeded` handler is now version-aware — v3 migration creates the notebooks store and index without destroying existing notes (unlike the previous destructive v2 handler).
+- **Sidebar rendering**: `loadSidebar()` replaces `loadNotes()`. It separates notes by `notebookId` (null → "scattered"), renders scattered notes into `scatteredListTarget` and notebook accordions into `notebookListTarget`.
+- **Accordion**: CSS-based collapse using `max-height: 0` → `max-height: 500px` transition. Single-expand only: toggling one notebook closes all others.
+- **Drag-and-drop**: HTML5 drag API. `dragStart` sets `application/note-id` data. Drop zones (notebook bodies + scattered container) accept drops and call `updateNoteNotebook()`.
+- **Long-press**: 600ms `setTimeout` on `touchstart`, cleared on `touchend`/`touchmove`. `contextmenu` event for desktop right-click. Both call `confirmDeleteNotebook()` which moves notes to scattered and deletes the notebook.
+- **Note delete in sidebar**: Each note item has an X button (visible on hover) that calls `deleteNote()` with `data-note-id`, properly stopping propagation to avoid triggering note selection.
+- **Note ownership**: New `notebookId` field on notes. `saveNote()` reads from `this.idTarget.dataset.notebookId`, set by `createNewNote()`, `createNoteInNotebook()`, or `selectNote()`.
+
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `app/javascript/controllers/notes_controller.js` | DB v3 with version-aware upgrade; added `notebooks` store CRUD + `updateNoteNotebook()`; added `scatteredList`/`notebookList` targets; `loadSidebar()` replaces `loadNotes()`; new methods: `createNotebook`, `confirmDeleteNotebook`, `createNoteInNotebook`, `toggleNotebookAccordion`, drag-and-drop handlers, long-press handlers; updated `createNewNote`, `selectNote`, `saveNote`, `deleteNote` for `notebookId` |
+| `app/views/home/_sidebar.erb` | Restructured into two panels: "Scattered Notes" with `data-notes-target="scatteredList"` (drop zone) and "Notebooks" with `data-notes-target="notebookList"`; removed old `list` target |
+| `app/assets/stylesheets/notes_workspace.scss` | Added `.notebook-header`, `.notebook-chevron`, `.notebook-body` accordion collapse/expand; `.notebook-body.drag-over` dashed outline; `.jb-tree-item` flex layout with hover-reveal delete button; `.scattered-notes-list` max-height + drop zone styling |
+
+### Known Issues / Follow-up
+- Pre-existing test failure in `home_controller_test.rb` (routing stub, unrelated)
+- Drag-and-drop on mobile requires long-press to initiate drag (HTML5 drag API is desktop-focused; a touch polyfill or custom touch-drag could be added later)
+- Deleting a notebook silently moves notes to scattered — no undo available
+- Notebook accordion max-height of 500px may clip very long note lists inside a notebook (unlikely in practice)
+- Prompt-based notebook naming (`window.prompt`) is basic; a proper modal with validation could be added
+
+---
+
 ## 2026-06-14 — Vercel static deployment support
 
 ### Summary
