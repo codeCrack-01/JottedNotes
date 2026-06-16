@@ -1,0 +1,27 @@
+#!/bin/bash
+set -e
+
+export ASSET_PREFIX="${ASSET_PREFIX:-/JottedNotes}"
+export RAILS_ENV=production
+export SECRET_KEY_BASE_DUMMY=1
+
+echo "==> Installing Ruby dependencies..."
+bundle install
+
+echo "==> Installing JavaScript dependencies..."
+yarn install
+
+echo "==> Compiling Tailwind CSS..."
+bundle exec rails tailwindcss:build
+
+echo "==> Precompiling Rails assets..."
+bundle exec rails assets:precompile
+
+echo "==> Exporting static pages..."
+bundle exec rails pages:export
+
+echo ""
+echo "  Done! public/${ASSET_PREFIX}/ is ready for GitHub Pages."
+echo ""
+echo "  Deploy with: npx gh-pages -d public${ASSET_PREFIX} --dotfiles"
+echo ""

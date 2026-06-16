@@ -1,11 +1,13 @@
+var PREFIX = "<%= ENV.fetch("ASSET_PREFIX", "") %>"
 var CACHE_NAME = "jotted-v1"
+var ASSET_FILES = JSON.parse('<%= raw ENV.fetch("PRECACHE_ASSETS", "[]") %>')
 var PRECACHE_URLS = [
-  "/",
-  "/icon.png",
-  "/icon.svg",
-  "/assets/application.css",
-  "/assets/application.js"
-]
+  PREFIX + "/",
+  PREFIX + "/icon.png",
+  PREFIX + "/icon.svg"
+].concat(
+  ASSET_FILES.map(function(f) { return PREFIX + "/assets/" + f })
+)
 
 self.addEventListener("install", function(event) {
   event.waitUntil(
@@ -34,10 +36,10 @@ self.addEventListener("fetch", function(event) {
 
   if (requestUrl.origin !== location.origin) return
 
-  if (requestUrl.pathname === "/") {
+  if (requestUrl.pathname === PREFIX + "/") {
     event.respondWith(
       fetch(event.request).catch(function() {
-        return caches.match("/")
+        return caches.match(PREFIX + "/")
       })
     )
     return

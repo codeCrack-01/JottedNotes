@@ -1,16 +1,18 @@
-<div data-notes-target="sidebar" class="col-md-3 ide-sidebar sidebar-panel d-flex flex-column p-3">
-  <div data-action="click->notes#toggleSidebar" class="sidebar-backdrop d-md-none"></div>
+<div data-notes-target="sidebar" class="island-sidebar w-72 flex-shrink-0 flex flex-col p-4 m-3 sidebar-panel">
+  <div data-action="click->notes#toggleSidebar" class="sidebar-backdrop lg:hidden"></div>
 
-  <div class="d-flex justify-content-between align-items-center pb-3 mb-2 ide-border-bottom">
-    <span class="fw-bold text-uppercase tracking-wider" style="font-size: 0.75rem; color: var(--jb-text-muted);">Project Notes</span>
-    <div class="d-flex align-items-center gap-2">
-      <button type="button" class="btn btn-sm d-md-none sidebar-close-btn p-0 d-flex align-items-center justify-content-center" data-action="click->notes#toggleSidebar" aria-label="Close sidebar">
-        <i class="bi bi-x-lg" style="font-size: 0.85rem;"></i>
+  <div class="flex items-center justify-between pb-3 mb-2 border-b border-jb-border">
+    <span class="text-xs font-semibold uppercase tracking-wider text-jb-muted">Project Notes</span>
+    <div class="flex items-center gap-2">
+      <button type="button" class="lg:hidden w-5 h-5 flex items-center justify-center text-jb-muted hover:text-jb-text" data-action="click->notes#toggleSidebar" aria-label="Close sidebar">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
       </button>
-      <button class="btn btn-jb-primary btn-sm px-2 py-1" style="font-size: 0.8rem;" data-action="click->notes#createNewNote">+ New Note</button>
+      <button class="btn-jb-accent" data-action="click->notes#createNewNote">+ New Note</button>
     </div>
   </div>
 
-  <div data-notes-target="list" class="flex-grow-1 overflow-auto">
+  <div data-notes-target="list" class="flex-1 overflow-auto">
   </div>
 </div>

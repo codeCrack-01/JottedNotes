@@ -1,50 +1,55 @@
 # Jotted
 
-JetBrains-inspired browser-based note-taking app with a rich-text editor, IDE-themed UI, and client-side persistence via IndexedDB.
+JetBrains Island-inspired browser-based note-taking app with a rich-text editor, floating-panel UI, and client-side persistence via IndexedDB.
 
 ## Features
 
-- **Rich-text editing** via Trix (powered by Rails Action Text) — bold, heading, code blocks, inline color, and font sizing
-- **Apple-style floating dock** — a glassmorphism toolbar docked to the right side of the editor with formatting controls
+- **Rich-text editing** via Trix (powered by Rails Action Text) — bold, heading, code blocks, inline highlight, and font sizing
+- **Floating dock** — a glassmorphism island docked to the right side of the editor with formatting controls
 - **Highlighter markers** — apply semi-transparent background highlight colors to selected text (Yellow, Blue, Red, Green)
 - **Font scaling** — increase or decrease text size relative to the base font
-- **Live word & character count** — updates in real time as you type, displayed in a pill badge at the bottom-right of the editor
+- **Live word & character count** — updates in real time as you type, displayed in a pill badge
 - **Client-side storage** — notes are persisted to the browser's IndexedDB (`JottedDB`) with automatic loading on page refresh
-- **Sidebar note list** — tree-style note browser with active-note highlighting; create, select, save, and delete notes
-- **JetBrains-inspired theme** — custom CSS variables for colors, sidebar/editor layout, and focus rings
+- **Sidebar note list** — flat note list with active-note highlighting; create, select, save, and delete notes
+- **JetBrains Island Light theme** — warm-gray background, floating rounded panels, subtle shadows, Tailwind CSS v4
 
 ## Project Structure
 
 ```
 app/
-├── assets/stylesheets/
-│   ├── application.bootstrap.scss    # Bootstrap + Icons import
-│   ├── actiontext.css                # Trix editor default styles
-│   └── notes_workspace.css           # IDE theme, dock, sidebar, custom buttons
+├── assets/tailwind/
+│   └── application.css             # Tailwind v4 config + custom component styles + theme tokens
 ├── controllers/
 │   ├── application_controller.rb
-│   ├── home_controller.rb            # Serves the single root page
-│   └── notes_controller.rb           # Stub (notes logic lives client-side)
+│   ├── home_controller.rb          # Serves the single root page
+│   ├── notes_controller.rb         # Stub (notes logic lives client-side)
+│   └── pwa_controller.rb           # Serves manifest.json and service-worker.js
 ├── javascript/
-│   ├── application.js                # Entry point: imports, Trix config patching
+│   ├── application.js              # Entry point: imports, Trix config patching
 │   └── controllers/
-│       ├── application.js            # Stimulus bootstrap
-│       ├── index.js                  # Auto-registers all controllers
-│       ├── hello_controller.js       # Demo controller (unused)
-│       └── notes_controller.js       # Core controller — all note CRUD, formatting, word count
+│       ├── application.js           # Stimulus bootstrap
+│       ├── index.js                 # Auto-registers all controllers
+│       ├── hello_controller.js      # Demo controller (unused)
+│       └── notes_controller.js      # Core controller — all note CRUD, formatting, word count
 ├── models/
-│   └── note.rb                       # has_rich_text :content (declared, no DB table yet)
+│   └── note.rb                     # has_rich_text :content (declared, no DB table yet)
 └── views/
-    └── home/
-        ├── index.html.erb            # Root page: sidebar + editor + empty state
-        ├── _sidebar.erb              # Note list sidebar with "+ New Note" button
-        ├── _editor_canvas.html.erb   # Trix editor, title input, word count, save/delete buttons
-        └── _floating_dock.html.erb   # Formatting toolbar (color, bold, heading, code, font size)
+    ├── home/
+    │   ├── index.html.erb           # Root page: sidebar + editor + empty state
+    │   ├── _sidebar.erb             # Note list sidebar with "+ New Note" button
+    │   ├── _editor_canvas.html.erb  # Trix editor, title input, word count, save/delete buttons
+    │   └── _floating_dock.html.erb  # Formatting toolbar (color, bold, heading, code, font size)
+    └── pwa/
+        ├── manifest.json.erb        # PWA manifest (prefix-aware paths)
+        ├── service_worker.js.erb    # Service worker (prefix-aware paths)
+        └── offline.html             # Offline fallback page
 
 config/
-├── routes.rb                         # root "home#index"
-├── importmap.rb                      # JS dependency pins (Stimulus, Trix, Bootstrap, etc.)
-└── database.yml                      # SQLite3 (primary + cache + queue + cable)
+├── routes.rb                        # root "home#index"
+├── importmap.rb                     # JS dependency pins (Stimulus, Trix, etc.)
+├── database.yml                     # SQLite3 (primary + cache + queue + cable)
+└── initializers/
+    └── asset_prefix.rb              # Dynamic assets.prefix from ASSET_PREFIX env var
 ```
 
 Note: Notes are stored entirely client-side in IndexedDB. The Rails `Note` model and `notes_controller.rb` are placeholders for future server-side persistence. There is no database migration for a `notes` table yet.
@@ -54,7 +59,7 @@ Note: Notes are stored entirely client-side in IndexedDB. The Rails `Note` model
 ### Prerequisites
 
 - Ruby 3.x (see `.ruby-version`)
-- Node.js (see `.node-version`)
+- Node.js (see `.node-version`) — only needed if you run `yarn install` for JS deps
 - Yarn or Bun
 - Rails 8.x
 
@@ -67,11 +72,11 @@ bin/rails db:create db:migrate
 bin/dev
 ```
 
-This starts the Rails server on port 3000 and the CSS watcher for Bootstrap/SCSS compilation.
+This starts the Rails server on port 3000 and the Tailwind CSS watcher (`bin/rails tailwindcss:watch`).
 
 ### Development
 
-- **CSS changes**: edit `app/assets/stylesheets/notes_workspace.css` or the SCSS entry point. The watcher (`bin/dev`) auto-recompiles.
+- **CSS changes**: edit `app/assets/tailwind/application.css`. The watcher (`bin/dev`) auto-recompiles via the standalone Tailwind binary — no Node.js needed for CSS.
 - **JavaScript changes**: edit files under `app/javascript/`. Importmap reloads on page refresh — no build step needed.
 - **Trix editor**: configured in `app/javascript/application.js` with custom `highlightColor` and `fontSize` attributes patched into `Trix.config`.
 - **Stimulus controller**: `notes_controller.js` manages all UI interactivity. Targets are defined in the static `targets` array and referenced in views via `data-notes-target` attributes.
@@ -120,27 +125,29 @@ The CI pipeline (see `config/ci.rb`) also runs RuboCop, bundler-audit, yarn audi
 
 ## Deployment
 
-### Vercel (Static Export — recommended for client-side-first usage)
+### GitHub Pages (Client-Side Static Export)
 
-Since Jotted stores all data client-side in IndexedDB, it can be deployed as a fully static site on Vercel's free tier.
+Since Jotted stores all data client-side in IndexedDB, it can be deployed as a fully static site on GitHub Pages.
 
 ```bash
 # Build the static site locally
-bin/vercel-build
+bin/pages-build
 
-# Deploy to Vercel
-npx vercel --prod
+# Deploy to GitHub Pages
+npx gh-pages -d public/JottedNotes --dotfiles
 ```
 
-The build script (`bin/vercel-build`) runs:
+The build script (`bin/pages-build`) runs:
 1. `bundle install` + `yarn install` (dependencies)
-2. `yarn build:css:compile` + `yarn build:css:prefix` (Bootstrap SCSS → CSS)
-3. `rails assets:precompile` (Propshaft fingerprinted assets → `public/assets/`)
-4. `rails vercel:export` (renders ERB → static files: `index.html`, `manifest.json`, `service-worker.js`)
+2. `rails tailwindcss:build` (Tailwind CSS via standalone binary)
+3. `rails assets:precompile` (Propshaft fingerprinted assets → `public/JottedNotes/assets/`)
+4. `rails pages:export` (renders ERB → static files under `public/JottedNotes/`)
 
-Configuration: `vercel.json` serves everything from `public/` with a rewrite for `/service-worker`.
+**CI/CD**: Pushing to `main` triggers `.github/workflows/pages.yml`, which builds and deploys to the `gh-pages` branch automatically. The site is served at `https://codeCrack-01.github.io/JottedNotes/`.
 
-Prerequisites: Ruby 4.0.5, Node 22, Yarn, the Vercel CLI (`npm i -g vercel`).
+Set the `ASSET_PREFIX` environment variable (defaults to `/JottedNotes`) to control the subpath.
+
+Prerequisites: Ruby 4.0.5, Node 22, Yarn.
 
 ### Kamal (Docker)
 

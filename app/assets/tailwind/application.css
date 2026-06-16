@@ -1,0 +1,311 @@
+@import "tailwindcss";
+
+@theme {
+  --color-jb-bg: #f0f0f1;
+  --color-jb-surface: #ffffff;
+  --color-jb-sidebar: #f8f8fa;
+  --color-jb-text: #1a1d23;
+  --color-jb-muted: #6b7280;
+  --color-jb-accent: #3574f0;
+  --color-jb-accent-hover: #2462da;
+  --color-jb-success: #59a869;
+  --color-jb-border: #e5e7eb;
+  --color-jb-hover: #f3f4f6;
+  --color-jb-selected: #e5e7eb;
+  --color-jb-highlight-yellow: rgba(255, 213, 79, 0.4);
+  --color-jb-highlight-blue: rgba(144, 202, 249, 0.4);
+  --color-jb-highlight-red: rgba(239, 154, 154, 0.4);
+  --color-jb-highlight-green: rgba(165, 214, 167, 0.4);
+}
+
+body {
+  background-color: var(--color-jb-bg);
+  color: var(--color-jb-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* --- Floating Island Panels --- */
+.island-panel {
+  background: var(--color-jb-surface);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--color-jb-border);
+}
+
+.island-sidebar {
+  background: var(--color-jb-sidebar);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--color-jb-border);
+}
+
+/* --- Floating Dock (glassmorphism) --- */
+.island-dock {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 50;
+}
+
+.dock-tool-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5f6368;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.dock-tool-btn:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+  color: #1a1a1a;
+}
+
+.dock-tool-btn:active {
+  background-color: rgba(0, 0, 0, 0.1);
+  transform: scale(0.96);
+}
+
+.dock-tool-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+.dock-scale-btn svg {
+  width: 26px;
+  height: 26px;
+}
+
+.dock-divider {
+  width: 24px;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.08);
+  margin: 4px auto;
+}
+
+/* --- Sidebar Tree Items --- */
+.jb-tree-item {
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--color-jb-text);
+  padding: 8px 12px;
+  margin-bottom: 2px;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+
+.jb-tree-item:hover {
+  background-color: var(--color-jb-hover);
+}
+
+.jb-tree-item.active-note {
+  background-color: var(--color-jb-selected);
+  font-weight: 500;
+}
+
+/* --- Custom Inputs --- */
+.jb-input {
+  background: transparent;
+  color: var(--color-jb-text);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  width: 100%;
+}
+
+.jb-input:focus {
+  border-color: var(--color-jb-accent);
+  box-shadow: 0 0 0 1px var(--color-jb-accent);
+  outline: none;
+}
+
+/* --- Buttons --- */
+.btn-jb-accent {
+  background-color: var(--color-jb-accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 16px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.btn-jb-accent:hover {
+  background-color: var(--color-jb-accent-hover);
+}
+
+.btn-jb-success {
+  background-color: var(--color-jb-success);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 20px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.btn-jb-success:hover {
+  background-color: #499158;
+}
+
+.btn-jb-ghost {
+  background: transparent;
+  border: 1px solid var(--color-jb-border);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  color: var(--color-jb-muted);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.btn-jb-ghost:hover {
+  background-color: var(--color-jb-hover);
+  color: var(--color-jb-text);
+}
+
+/* --- Color Menu --- */
+.color-menu {
+  position: absolute;
+  right: calc(100% + 8px);
+  top: 0;
+  background: white;
+  border: 1px solid var(--color-jb-border);
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 60;
+}
+
+.color-swatch {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.12s;
+}
+
+.color-swatch:hover {
+  transform: scale(1.15);
+}
+
+/* --- Sidebar Toggle (mobile) --- */
+.sidebar-toggle-btn {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  width: 40px;
+  height: 40px;
+  color: var(--color-jb-text);
+  cursor: pointer;
+}
+
+.sidebar-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+/* --- Trix Editor Overrides --- */
+trix-toolbar {
+  display: none !important;
+}
+
+trix-editor {
+  flex-grow: 1;
+  overflow-y: auto !important;
+  border: 1px solid transparent !important;
+  padding: 20px 16px 40px 16px !important;
+  line-height: 1.6;
+  color: var(--dynamic-text-color, var(--color-jb-text));
+  background: transparent;
+  max-height: calc(100vh - 240px);
+  font-size: var(--jb-editor-font-size, 0.95rem) !important;
+}
+
+trix-editor:focus {
+  border-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* --- Word Count Pill --- */
+.status-pill {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6e6e73;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  pointer-events: none;
+}
+
+/* --- Mobile Sidebar Overlay --- */
+@media (max-width: 1023.98px) {
+  .sidebar-panel {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 300px;
+    max-width: 80vw;
+    height: 100vh;
+    z-index: 60;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.08);
+    border: none;
+    border-radius: 0 12px 12px 0;
+  }
+
+  .sidebar-panel.sidebar-visible {
+    transform: translateX(0);
+  }
+
+  .sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.2);
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+
+  .sidebar-panel.sidebar-visible .sidebar-backdrop {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}

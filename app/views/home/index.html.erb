@@ -1,49 +1,27 @@
-<div class="container-fluid p-0" data-controller="notes">
+<div class="min-h-screen bg-jb-bg" data-controller="notes">
   <button data-action="click->notes#toggleSidebar"
-          class="btn sidebar-toggle-btn d-md-none position-fixed top-0 start-0 mt-3 ms-3"
+          class="sidebar-toggle-btn fixed top-3 left-3 z-50 lg:hidden flex items-center justify-center"
           type="button"
-          style="z-index: 1060;">
-    <i class="bi bi-list fs-4"></i>
-  </button>
-<div class="container-fluid p-0" data-controller="notes">
-  <button data-action="click->notes#toggleSidebar"
-          class="btn sidebar-toggle-btn d-md-none position-fixed top-0 start-0 mt-3 ms-3"
-          type="button"
-          style="z-index: 1060;">
-    <i class="bi bi-list fs-4"></i>
+          aria-label="Toggle sidebar">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+      <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+    </svg>
   </button>
 
-  <div class="row g-0">
-
+  <div class="flex min-h-screen">
     <%= render "home/sidebar" %>
 
-    <div class="col-12 col-md-9 ide-editor d-flex flex-column p-4 pt-5 pt-md-4">
+    <div class="flex-1 flex flex-col p-3 lg:p-4 pt-14 lg:pt-4 min-w-0">
+      <div class="island-panel flex-1 flex flex-col p-4 lg:p-6 overflow-hidden">
+        <%= render "home/editor_canvas" %>
 
-      <%= render "home/editor_canvas" %>
-
-      <div data-notes-target="emptyState" class="m-auto text-center" style="max-width: 400px;">
-        <div class="text-muted mb-2 font-monospace" style="font-size: 0.85rem;">JetBrains Notes v2026.1</div>
-        <p class="small" style="color: var(--jb-text-muted);">Select an architectural item from the tree projection or click the initialization button to start modifying a document node.</p>
+        <div data-notes-target="emptyState" class="flex-1 flex items-center justify-center">
+          <div class="text-center max-w-sm">
+            <div class="text-jb-muted mb-2 font-mono text-sm">JetBrains Notes v2026.1</div>
+            <p class="text-xs text-jb-muted leading-relaxed">Select an item from the project tree or create a new note to start editing.</p>
+          </div>
+        </div>
       </div>
-
     </div>
-
-  </div>
-</div>
-  <div class="row g-0">
-
-    <%= render "home/sidebar" %>
-
-    <div class="col-12 col-md-9 ide-editor d-flex flex-column p-4 pt-5 pt-md-4">
-
-      <%= render "home/editor_canvas" %>
-
-      <div data-notes-target="emptyState" class="m-auto text-center" style="max-width: 400px;">
-        <div class="text-muted mb-2 font-monospace" style="font-size: 0.85rem;">JetBrains Notes v2026.1</div>
-        <p class="small" style="color: var(--jb-text-muted);">Select an architectural item from the tree projection or click the initialization button to start modifying a document node.</p>
-      </div>
-
-    </div>
-
   </div>
 </div>

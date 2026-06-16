@@ -166,7 +166,7 @@ export default class extends Controller {
         editor.setSelectedRange([range[1], range[1]])
         editor.deactivateAttribute("highlightColor")
 
-        if (this.hasColorMenuTarget) this.colorMenuTarget.classList.add("d-none")
+        if (this.hasColorMenuTarget) this.colorMenuTarget.hidden = true
         break
       case "size":
         if (value === "up" && this.currentZoom < 1.5) this.currentZoom += 0.10
@@ -177,14 +177,14 @@ export default class extends Controller {
   }
 
   toggleColorMenu() {
-    this.colorMenuTarget.classList.toggle("d-none")
+    this.colorMenuTarget.hidden = !this.colorMenuTarget.hidden
   }
 
   closeColorMenuOutside(event) {
     if (this.colorMenuTarget.contains(event.target) || event.target.closest('[data-action*="toggleColorMenu"]')) {
       return
     }
-    this.colorMenuTarget.classList.add("d-none")
+    this.colorMenuTarget.hidden = true
   }
 
   updateWordCount(editorElementOrEvent = null) {
@@ -215,8 +215,8 @@ export default class extends Controller {
   }
 
   createNewNote() {
-    this.emptyStateTarget.classList.add("d-none")
-    this.editorTarget.classList.remove("d-none")
+    this.emptyStateTarget.classList.add("hidden")
+    this.editorTarget.classList.remove("hidden")
 
     this.idTarget.value = crypto.randomUUID()
     this.titleTarget.value = "Untitled_Note.md"
@@ -233,8 +233,8 @@ export default class extends Controller {
     const note = await this.storage.getNote(id)
     if (!note) return
 
-    this.emptyStateTarget.classList.add("d-none")
-    this.editorTarget.classList.remove("d-none")
+    this.emptyStateTarget.classList.add("hidden")
+    this.editorTarget.classList.remove("hidden")
 
     this.idTarget.value = note.id
     this.titleTarget.value = note.title
@@ -245,7 +245,7 @@ export default class extends Controller {
     }
     this.loadNotes()
 
-    if (window.innerWidth < 768 && this.hasSidebarTarget) {
+    if (window.innerWidth < 1024 && this.hasSidebarTarget) {
       this.sidebarTarget.classList.remove("sidebar-visible")
     }
   }
@@ -269,7 +269,7 @@ export default class extends Controller {
 
     await this.storage.deleteNote(id)
     this.loadNotes()
-    this.editorTarget.classList.add("d-none")
-    this.emptyStateTarget.classList.remove("d-none")
+    this.editorTarget.classList.add("hidden")
+    this.emptyStateTarget.classList.remove("hidden")
   }
 }

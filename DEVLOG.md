@@ -1,6 +1,84 @@
 # Development Log
 
-## 2026-06-15 — Reverted notebooks feature, simplified sidebar to original v1
+## 2026-06-16 — GitHub Pages deployment pipeline (removed Vercel, added prefix-aware static export)
+
+### Summary
+Replaced the Vercel deployment pipeline with a GitHub Pages–focused approach. Removed `vercel.json`, `bin/vercel-build`, and `lib/tasks/vercel.rake`. Created `lib/tasks/pages.rake` (static export task), `bin/pages-build` (build script), and `.github/workflows/pages.yml` (CI/CD). Added `config/initializers/asset_prefix.rb` so `config.assets.prefix` is dynamically set from `ASSET_PREFIX` env var (e.g., `/JottedNotes`), ensuring Propshaft generates correct subpath URLs. All PWA templates now use `ENV.fetch("ASSET_PREFIX", "")` for paths, and the service worker was renamed to `.js.erb` to support ERB preprocessing.
+
+### Key Implementation Details
+- **Dynamic asset prefix**: `config/initializers/asset_prefix.rb` reads `ENV['ASSET_PREFIX']` and sets `config.assets.prefix` to `{prefix}/assets`. This makes `stylesheet_link_tag`, `javascript_importmap_tags`, and `asset_path` generate URLs with the subpath (e.g., `/JottedNotes/assets/tailwind-xxx.css`).
+- **Export to subdirectory**: `pages.rake` writes rendered templates and copies static assets (icons, offline.html) into `public/<ASSET_PREFIX>/`. When deploying, only this subdirectory is published as the site root, so file paths match the URL structure.
+- **Service worker → JS ERB**: Renamed `service_worker.js` → `service_worker.js.erb` so that `ENV['ASSET_PREFIX']` can be injected at build time. All precache URLs and path-matching logic use a `PREFIX` variable.
+- **GitHub Actions**: `.github/workflows/pages.yml` runs on push to `main`, executes `bin/pages-build`, and deploys `public/JottedNotes/` via `peaceiris/actions-gh-pages`.
+- **Build script**: `bin/pages-build` defaults `ASSET_PREFIX` to `/JottedNotes`, then runs: bundle → yarn → tailwind build → precompile → pages:export.
+- **No regressions for local dev**: Without `ASSET_PREFIX` set, all template expressions and the initializer produce empty-string prefixes, matching pre-change behavior.
+
+### Files Modified
+| File | Change |
+|------|--------|
+| `vercel.json` | **Removed** |
+| `bin/vercel-build` | **Removed** |
+| `lib/tasks/vercel.rake` | **Removed** |
+| `config/initializers/asset_prefix.rb` | **Created** — dynamic `assets.prefix` from `ENV['ASSET_PREFIX']` |
+| `lib/tasks/pages.rake` | **Created** — exports static files to `public/<ASSET_PREFIX>/` |
+| `bin/pages-build` | **Created** — full build script for GitHub Pages |
+| `.github/workflows/pages.yml` | **Created** — CI/CD deploying to `gh-pages` branch |
+| `app/views/layouts/application.html.erb` | All PWA paths wrapped with `ENV.fetch("ASSET_PREFIX", "")` |
+| `app/views/pwa/manifest.json.erb` | Icon src, start_url, scope now use `ASSET_PREFIX` |
+| `app/views/pwa/service_worker.js` | **Renamed** → `service_worker.js.erb`, added `PREFIX` variable |
+| `.gitignore` | Replaced Vercel artifact entries with `/public/JottedNotes/` |
+| `README.md` | Replaced Vercel deployment docs with GitHub Pages section; updated project structure |
+
+### Known Issues / Follow-up
+- The PWA's precache list still hardcodes `/assets/application.css` and `/assets/application.js` (non-digest paths). These will fail on install but the fetch handler falls through to network. Should be updated to use actual digest filenames.
+- `bin/pages-build` requires Ruby and Node installed — ensure the CI runner has both.
+- If the repo name changes, update `ASSET_PREFIX` in `bin/pages-build` and the workflow's `publish_dir` path.
+
+---
+
+## 2026-06-16 — Migrated from Bootstrap to Tailwind CSS v4 with JetBrains Island Light redesign
+
+### Summary
+Replaced Bootstrap 5.3 with Tailwind CSS v4 (via the `tailwindcss-rails` gem) and redesigned the entire UI with a JetBrains Island Light aesthetic. Removed the entire SCSS/Sass/PostCSS build pipeline in favor of Tailwind's standalone binary (Rust-based, no Node.js build dependency). All views were rewritten to strip Bootstrap classes and use Tailwind utility classes. The floating dock, sidebar, and editor panels now render as rounded "floating islands" on a warm-gray background, matching the JetBrains New UI light-theme look. Bootstrap Icons were replaced with inline SVGs. The color-menu dropdown now uses pure CSS/Stimulus (no Bootstrap JS dependency).
+
+### Key Implementation Details
+- **Tailwind v4 via `tailwindcss-rails` v4.5.0**: uses the standalone Rust binary (`tailwindcss-ruby` gem) — no Node.js needed for CSS compilation. The watcher runs via `bin/rails tailwindcss:watch` in Procfile.dev.
+- **CSS-first configuration**: `app/assets/tailwind/application.css` uses `@import "tailwindcss"` with an `@theme` block defining custom JetBrains color tokens (`jb-bg`, `jb-surface`, `jb-sidebar`, `jb-text`, `jb-muted`, `jb-accent`, etc.).
+- **Island panels**: sidebar/editor use `.island-panel` and `.island-sidebar` classes with `border-radius: 12px`, `box-shadow` subtleties, and `border: 1px solid` for the floating effect.
+- **Floating dock**: `.island-dock` with `backdrop-filter: blur(20px)` glassmorphism, right-positioned at 50% vertical.
+- **Button system**: `.btn-jb-accent` (blue), `.btn-jb-success` (green), `.btn-jb-ghost` (subtle outline) — all with `border-radius: 8px` and soft hover transitions.
+- **Color menu**: repositioned to the left of the dock, uses `.color-menu` (white rounded card with shadow) and `.color-swatch` (circular buttons) — toggled via Stimulus `toggleColorMenu`/`closeColorMenuOutside`, no Bootstrap JS.
+- **Icons**: all Bootstrap Icons replaced with inline SVGs (hamburger, close, plus icons).
+- **Stale assets**: removed `public/assets/.manifest.json` (precompiled Bootstrap manifest) which was causing Propshaft to use the static resolver instead of dynamic resolution.
+
+### Files Modified
+| File | Change |
+|------|--------|
+| `Gemfile` | Replaced `cssbundling-rails` with `tailwindcss-rails` |
+| `Procfile.dev` | Replaced `yarn watch:css` with `bin/rails tailwindcss:watch` |
+| `package.json` | Removed bootstrap, bootstrap-icons, @popperjs/core, sass, postcss, autoprefixer, nodemon. Kept only trix + @rails/actiontext |
+| `bin/vercel-build` | Replaced yarn CSS build steps with `bundle exec rails tailwindcss:build`. Added `yarn install` back for JS deps |
+| `config/importmap.rb` | Removed `pin "bootstrap"` |
+| `config/initializers/assets.rb` | Removed Bootstrap icon/font and JS asset paths |
+| `app/javascript/application.js` | Removed `import * as bootstrap from "bootstrap"` |
+| `app/javascript/controllers/notes_controller.js` | Replaced all `d-none` class refs with `hidden` |
+| `app/views/layouts/application.html.erb` | Replaced `stylesheet_link_tag :app` with `stylesheet_link_tag "tailwind"` |
+| `app/views/home/index.html.erb` | Full rewrite: stripped Bootstrap grid classes, uses Tailwind flex layout, island-panel wrapper |
+| `app/views/home/_sidebar.erb` | Full rewrite: island-sidebar panel, inline SVG icons, Tailwind utility classes |
+| `app/views/home/_editor_canvas.html.erb` | Full rewrite: Tailwind classes, status-pill in flow, jb-input styling |
+| `app/views/home/_floating_dock.html.erb` | Rewrote: island-dock class, color-menu with pure CSS/Stimulus, inline SVGs |
+| `app/assets/tailwind/application.css` | **Created**: Tailwind v4 CSS-first config with @theme tokens and all custom component styles |
+| `app/assets/stylesheets/application.bootstrap.scss` | **Removed** |
+| `app/assets/stylesheets/notes_workspace.scss` | **Removed** |
+| `app/assets/builds/application.css` | **Removed** (1.1MB stale Bootstrap build) |
+| `public/assets/.manifest.json` | **Removed** (stale precompile manifest) |
+| `.gitignore` | Added `public/assets/.manifest.json` |
+
+### Known Issues / Follow-up
+- Tailwind v4's CSS-first config requires adding custom colors in `@theme` blocks; ensure new utility classes are detected by the content scanner
+- The `status-pill` word count element now renders in normal flow (previously absolute-positioned) — verify positioning doesn't break at various editor heights
+- Inline SVGs for icons work but lack the consistency of a dedicated icon library — consider Heroicons or Lucide if more icons are needed
+- Pre-existing test failure in `home_controller_test.rb` remains resolved (was a routing stub, not related to this change)
 
 ### Summary
 The notebook implementation (scattered notes + notebook accordions) was broken — notes created via the UI weren't displaying in the sidebar, and notebooks couldn't be created either. Root cause was a stale `public/index.html` build artifact being served instead of the live ERB (fixed in previous session), plus the notebook code itself adding complexity without working correctly. Reverted the sidebar, controller, and CSS to the pre-notebook v1 state — a single "Project Notes" header with a "+ New Note" button and a flat note list. Also fixed a service-worker 404 caused by a template filename mismatch (hyphen vs underscore in `app/views/pwa/`).
