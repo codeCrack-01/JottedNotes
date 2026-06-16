@@ -1,5 +1,47 @@
 # Development Log
 
+## 2026-06-16 — Custom island-themed confirm dialog for delete
+
+### Summary
+Replaced the native `confirm()` dialog with a custom modal that matches the JetBrains Island Light aesthetic — glassmorphism surface, blurred backdrop, slide-up scale animation, and rounded corners. Also added a `.btn-jb-danger` (red) button style for destructive actions.
+
+### Key Implementation Details
+- **Promise-based flow**: `showConfirmDialog(message)` returns a `Promise` that resolves `true`/`false` based on user action. The `_confirmResolve` callback is stored on the controller instance and invoked by `confirmYes()` / `confirmNo()`.
+- **Backdrop dismiss**: Clicking the overlay (outside the modal island) triggers `confirmNo()`, cancelling the delete. The modal island uses `data-action="click->stopPropagation"` to prevent clicks inside from propagating.
+- **Modal design**: `.modal-overlay` (fixed fullscreen, semi-transparent backdrop with fade-in) + `.modal-island` (white glassmorphism card, 16px radius, 0.3s slide-up scale animation). Icon is an inline SVG trashcan, title is "Delete Note", message is the confirmation text.
+- **Danger button**: `.btn-jb-danger` in red (#e55c5c) with hover darkening — used for the Delete action in the modal.
+- **Modal targets**: `confirmDialog` (overlay) and `confirmMessage` (message text) added to the Stimulus controller.
+
+### Files Modified
+| File | Change |
+|------|--------|
+| `app/views/home/_editor_canvas.html.erb` | Added modal HTML with SVG icon, title, message, Cancel/Delete buttons; wired via Stimulus targets and actions |
+| `app/javascript/controllers/notes_controller.js` | Added `confirmDialog`/`confirmMessage` targets, `showConfirmDialog()`, `confirmYes()`, `confirmNo()` methods; replaced `confirm()` with async dialog in `deleteNote()` |
+| `app/assets/tailwind/application.css` | Added `.modal-overlay`, `.modal-island`, `.modal-icon`, `.modal-title`, `.modal-message`, `.modal-actions`, `.btn-jb-danger` with animations |
+
+---
+
+## 2026-06-16 — Commit button dirty-state indicator + delete confirmation
+
+### Summary
+Added a visual dirty-state indicator to the Commit button: blue with a subtle pulse animation when there are unsaved changes, green when everything is saved. Added a `confirm()` dialog before deleting notes to prevent accidental deletions, especially on mobile.
+
+### Key Implementation Details
+- **Dirty tracking**: `isDirty` flag set on `trix-change` and title `input` events, cleared after save or note load/create. A `_suppressDirty` flag prevents programmatic `loadHTML()` calls from marking the note as dirty.
+- **saveIndicator target**: New Stimulus target on the commit button. `updateSaveIndicator()` toggles between `btn-jb-success` (green, "Saved") and `btn-jb-unsaved` (blue with pulse, "Commit Changes").
+- **Pulse animation**: `.btn-jb-unsaved` uses a `pulse-unsaved` keyframe animation that fades a blue box-shadow ring in/out on a 2s loop — subtle but noticeable.
+- **Delete confirmation**: `window.confirm()` in `deleteNote()` with a clear message ("Are you sure you want to delete this note? This cannot be undone."). Returns early if cancelled.
+- **Title input dirty tracking**: Added `data-action="input->notes#markDirty"` to the title input so renaming a note also marks it dirty.
+
+### Files Modified
+| File | Change |
+|------|--------|
+| `app/javascript/controllers/notes_controller.js` | Added `saveIndicator` target, `markDirty()`/`markClean()`/`updateSaveIndicator()`, dirty tracking in `connect()`, `_suppressDirty` flag in `selectNote()`/`createNewNote()`, `confirm()` in `deleteNote()` |
+| `app/views/home/_editor_canvas.html.erb` | Added `data-notes-target="saveIndicator"` and `data-action="input->notes#markDirty"` to title input; button default text → "Saved" |
+| `app/assets/tailwind/application.css` | Added `.btn-jb-unsaved` class and `@keyframes pulse-unsaved` animation |
+
+---
+
 ## 2026-06-16 — Mobile sidebar auto-collapse on new note
 
 ### Summary
