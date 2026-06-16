@@ -102,10 +102,13 @@ function configureTrixAttributes() {
 // 3. MAIN WORKSPACE UI CONTROLLER
 // =========================================================================
 export default class extends Controller {
-  static targets = ["list", "editor", "id", "title", "content", "emptyState", "wordCount", "colorMenu", "sidebar"]
+  static targets = ["list", "editor", "id", "title", "content", "emptyState", "wordCount", "colorMenu", "sidebar", "saveIndicator", "confirmDialog", "confirmMessage"]
 
   async connect() {
     this.currentZoom = 0.95
+
+    this.isDirty = false
+    this._suppressDirty = false
 
     this.storage = new EditorDB()
     try {
@@ -115,12 +118,33 @@ export default class extends Controller {
       console.error("Failed to connect to storage engine:", e)
     }
 
-    this.onTrixChange = (event) => this.updateWordCount(event.target)
+    this.onTrixChange = (event) => {
+      this.updateWordCount(event.target)
+      this.markDirty()
+    }
     this.element.addEventListener("trix-change", this.onTrixChange)
   }
 
   onTrixInit() {
     this.updateWordCount()
+  }
+
+  markDirty() {
+    if (this._suppressDirty) return
+    this.isDirty = true
+    this.updateSaveIndicator()
+  }
+
+  markClean() {
+    this.isDirty = false
+    this.updateSaveIndicator()
+  }
+
+  updateSaveIndicator() {
+    if (!this.hasSaveIndicatorTarget) return
+    this.saveIndicatorTarget.classList.toggle("btn-jb-success", !this.isDirty)
+    this.saveIndicatorTarget.classList.toggle("btn-jb-unsaved", this.isDirty)
+    this.saveIndicatorTarget.textContent = this.isDirty ? "Commit Changes" : "Saved"
   }
 
   toggleSidebar() {
@@ -221,10 +245,13 @@ export default class extends Controller {
     this.idTarget.value = crypto.randomUUID()
     this.titleTarget.value = "Untitled_Note.md"
 
+    this._suppressDirty = true
     if (this.trixEditor) {
       this.trixEditor.editor.loadHTML("")
       this.updateWordCount(this.trixEditor)
     }
+    this._suppressDirty = false
+    this.markClean()
     this.titleTarget.focus()
 
     if (window.innerWidth < 1024 && this.hasSidebarTarget) {
@@ -243,10 +270,13 @@ export default class extends Controller {
     this.idTarget.value = note.id
     this.titleTarget.value = note.title
 
+    this._suppressDirty = true
     if (this.trixEditor) {
       this.trixEditor.editor.loadHTML(note.content || "")
       this.updateWordCount(this.trixEditor)
     }
+    this._suppressDirty = false
+    this.markClean()
     this.loadNotes()
 
     if (window.innerWidth < 1024 && this.hasSidebarTarget) {
@@ -263,13 +293,40 @@ export default class extends Controller {
     }
 
     await this.storage.saveNote(noteData)
-    console.log("Note saved successfully.")
+    this.markClean()
     this.loadNotes()
+  }
+
+  showConfirmDialog(message) {
+    return new Promise((resolve) => {
+      this._confirmResolve = resolve
+      this.confirmMessageTarget.textContent = message
+      this.confirmDialogTarget.classList.add("modal-open")
+    })
+  }
+
+  confirmYes() {
+    this.confirmDialogTarget.classList.remove("modal-open")
+    if (this._confirmResolve) {
+      this._confirmResolve(true)
+      this._confirmResolve = null
+    }
+  }
+
+  confirmNo() {
+    this.confirmDialogTarget.classList.remove("modal-open")
+    if (this._confirmResolve) {
+      this._confirmResolve(false)
+      this._confirmResolve = null
+    }
   }
 
   async deleteNote() {
     const id = this.idTarget.value
     if (!id) return
+
+    const confirmed = await this.showConfirmDialog("Are you sure you want to delete this note? This cannot be undone.")
+    if (!confirmed) return
 
     await this.storage.deleteNote(id)
     this.loadNotes()
