@@ -1,5 +1,31 @@
 # Development Log
 
+## 2026-06-16 — Read-only view toggle
+
+### Summary
+Added a read-only mode for browsing notes without accidental edits. A circular glassmorphism toggle button (pen-in-square icon) sits above the floating dock. New notes open in edit mode; selecting an existing note opens in read-only mode. The button toggles between modes and changes color (accent blue = editing, muted = viewing).
+
+### Key Implementation Details
+- **Toggle button**: 36px circle with `border-radius: 50%`, same glassmorphism styling as the dock (`rgba(255,255,255,0.85)` background, `blur(20px)` backdrop-filter, subtle border and shadow). Uses a pen-in-rounded-square SVG icon from two `<path>` elements — the pen is scaled to fit within a `rect` frame.
+- **dock-column wrapper**: Replaced the standalone `position: absolute` on `.island-dock` with a new `.dock-column` flex container that holds both the toggle button and the dock. The dock is now `position: relative` inside this wrapper. The wrapper sits at `right: 16px; top: 50%; transform: translateY(-50%)` — same position as the old dock.
+- **readOnly state**: Boolean flag `this.readOnly` initialized to `false` in `connect()`. `toggleReadOnly()` flips it and calls `applyReadOnlyState()`. The method sets `contenteditable` on the trix-editor, adds/removes `readonly` on the title input, toggles `opacity-70` class on the title, hides/shows the dock and action bar via `hidden` attribute on Stimulus targets, and updates the toggle button's `edit-mode` class + title text.
+- **Mode routing**: `createNewNote()` forces edit mode after clearing the editor. `selectNote()` forces read-only mode after loading the note's content. The check `if (!this.readOnly)` in each prevents redundant DOM updates when the mode is already correct.
+- **Stimulus targets**: Added `readOnlyToggle` (the button), `dockPanel` (wrapper around the dock partial), and `editorActions` (the save/delete button bar). All use `has*Target` guards for safety.
+- **Visual feedback**: `.read-only-toggle.edit-mode` sets `color` and `border-color` to `--color-jb-accent` (#3574f0). The default (read-only) state uses muted gray (#5f6368).
+
+### Files Modified
+| File | Change |
+|------|--------|
+| `app/javascript/controllers/notes_controller.js` | Added `readOnlyToggle`/`dockPanel`/`editorActions` targets, `readOnly` state, `toggleReadOnly()`/`applyReadOnlyState()` methods, mode switching in `selectNote()` and `createNewNote()` |
+| `app/views/home/_editor_canvas.html.erb` | Added toggle button with pen-in-square SVG above the dock; wrapped dock in `dockPanel` target; added `editorActions` target to save/delete bar |
+| `app/assets/tailwind/application.css` | Added `.dock-column` wrapper (absolutely positioned flex column), `.dock-column .island-dock` override (relative positioning), `.read-only-toggle` (circular glassmorphism button), `.read-only-toggle.edit-mode` (accent state) |
+
+### Known Issues / Follow-up
+- Toggling to read-only while editing discards the undo stack visually (contenteditable freeze is non-destructive, but Trix history is preserved internally)
+- The read-only toggle is hidden when no note is selected (editor is in empty state) — consistent with the dock being hidden
+
+---
+
 ## 2026-06-16 — Custom island-themed confirm dialog for delete
 
 ### Summary

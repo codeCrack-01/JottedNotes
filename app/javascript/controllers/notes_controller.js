@@ -102,13 +102,14 @@ function configureTrixAttributes() {
 // 3. MAIN WORKSPACE UI CONTROLLER
 // =========================================================================
 export default class extends Controller {
-  static targets = ["list", "editor", "id", "title", "content", "emptyState", "wordCount", "colorMenu", "sidebar", "saveIndicator", "confirmDialog", "confirmMessage"]
+  static targets = ["list", "editor", "id", "title", "content", "emptyState", "wordCount", "colorMenu", "sidebar", "saveIndicator", "confirmDialog", "confirmMessage", "readOnlyToggle", "dockPanel", "editorActions"]
 
   async connect() {
     this.currentZoom = 0.95
 
     this.isDirty = false
     this._suppressDirty = false
+    this.readOnly = false
 
     this.storage = new EditorDB()
     try {
@@ -200,6 +201,42 @@ export default class extends Controller {
     }
   }
 
+  toggleReadOnly() {
+    this.readOnly = !this.readOnly
+    this.applyReadOnlyState()
+  }
+
+  applyReadOnlyState() {
+    const editor = this.trixEditor
+    if (!editor) return
+
+    if (this.readOnly) {
+      editor.setAttribute("contenteditable", "false")
+      this.titleTarget.setAttribute("readonly", "readonly")
+      this.titleTarget.classList.add("opacity-70")
+
+      if (this.hasReadOnlyToggleTarget) {
+        this.readOnlyToggleTarget.classList.remove("edit-mode")
+        this.readOnlyToggleTarget.title = "Switch to edit mode"
+      }
+
+      if (this.hasDockPanelTarget) this.dockPanelTarget.hidden = true
+      if (this.hasEditorActionsTarget) this.editorActionsTarget.hidden = true
+    } else {
+      editor.setAttribute("contenteditable", "true")
+      this.titleTarget.removeAttribute("readonly")
+      this.titleTarget.classList.remove("opacity-70")
+
+      if (this.hasReadOnlyToggleTarget) {
+        this.readOnlyToggleTarget.classList.add("edit-mode")
+        this.readOnlyToggleTarget.title = "Switch to read-only mode"
+      }
+
+      if (this.hasDockPanelTarget) this.dockPanelTarget.hidden = false
+      if (this.hasEditorActionsTarget) this.editorActionsTarget.hidden = false
+    }
+  }
+
   toggleColorMenu() {
     this.colorMenuTarget.hidden = !this.colorMenuTarget.hidden
   }
@@ -252,6 +289,12 @@ export default class extends Controller {
     }
     this._suppressDirty = false
     this.markClean()
+
+    if (this.readOnly) {
+      this.readOnly = false
+      this.applyReadOnlyState()
+    }
+
     this.titleTarget.focus()
 
     if (window.innerWidth < 1024 && this.hasSidebarTarget) {
@@ -278,6 +321,11 @@ export default class extends Controller {
     this._suppressDirty = false
     this.markClean()
     this.loadNotes()
+
+    if (!this.readOnly) {
+      this.readOnly = true
+      this.applyReadOnlyState()
+    }
 
     if (window.innerWidth < 1024 && this.hasSidebarTarget) {
       this.sidebarTarget.classList.remove("sidebar-visible")
