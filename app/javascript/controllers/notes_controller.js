@@ -226,6 +226,10 @@ export default class extends Controller {
       this.updateWordCount(this.trixEditor)
     }
     this.titleTarget.focus()
+
+    if (window.innerWidth < 1024 && this.hasSidebarTarget) {
+      this.sidebarTarget.classList.remove("sidebar-visible")
+    }
   }
 
   async selectNote(event) {

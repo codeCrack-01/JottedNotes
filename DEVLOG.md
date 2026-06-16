@@ -1,5 +1,17 @@
 # Development Log
 
+## 2026-06-16 — Mobile sidebar auto-collapse on new note
+
+### Summary
+`createNewNote()` was missing the sidebar auto-collapse logic that `selectNote()` already had. On mobile (<1024px), tapping "+ New Note" left the sidebar overlay open, forcing an extra tap to dismiss it. Added the same `window.innerWidth` check to `createNewNote()` so both navigation paths close the sidebar.
+
+### Files Modified
+| File | Change |
+|------|--------|
+| `app/javascript/controllers/notes_controller.js` | Added `window.innerWidth < 1024` check in `createNewNote()` to collapse sidebar on mobile |
+
+---
+
 ## 2026-06-16 — PWA install banner + favicon fix
 
 ### Summary
