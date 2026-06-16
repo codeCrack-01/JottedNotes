@@ -3,10 +3,10 @@ class PwaController < ApplicationController
   layout false
 
   def manifest
-    render formats: [:json]
+    render formats: [ :json ]
   end
 
   def service_worker
-    render formats: [:js]
+    render formats: [ :js ]
   end
 end
