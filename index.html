@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Jotted</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Jotted">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    
+
+    
+
+    <link rel="manifest" href="/JottedNotes/manifest.json">
+
+    <link rel="icon" href="/JottedNotes/icon.png" type="image/png">
+    <link rel="icon" href="/JottedNotes/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/JottedNotes/icon.png">
+
+    <link rel="stylesheet" href="/JottedNotes/assets/tailwind-7a057987.css" data-turbo-track="reload" />
+    <script type="importmap" data-turbo-track="reload">{
+  "imports": {
+    "application": "/JottedNotes/assets/application-30b31416.js",
+    "@hotwired/turbo-rails": "/JottedNotes/assets/turbo.min-9fd88cd5.js",
+    "@hotwired/stimulus": "/JottedNotes/assets/stimulus.min-4b1e420e.js",
+    "@hotwired/stimulus-loading": "/JottedNotes/assets/stimulus-loading-1fc53fe7.js",
+    "trix": "/JottedNotes/assets/trix-4bf79781.js",
+    "@rails/actiontext": "/JottedNotes/assets/actiontext.esm-c376325e.js",
+    "controllers/application": "/JottedNotes/assets/controllers/application-3affb389.js",
+    "controllers/hello_controller": "/JottedNotes/assets/controllers/hello_controller-708796bd.js",
+    "controllers": "/JottedNotes/assets/controllers/index-ee64e1f1.js",
+    "controllers/notes_controller": "/JottedNotes/assets/controllers/notes_controller-59eea74c.js"
+  }
+}</script>
+<link rel="modulepreload" href="/JottedNotes/assets/application-30b31416.js">
+<link rel="modulepreload" href="/JottedNotes/assets/turbo.min-9fd88cd5.js">
+<link rel="modulepreload" href="/JottedNotes/assets/stimulus.min-4b1e420e.js">
+<link rel="modulepreload" href="/JottedNotes/assets/stimulus-loading-1fc53fe7.js">
+<link rel="modulepreload" href="/JottedNotes/assets/trix-4bf79781.js">
+<link rel="modulepreload" href="/JottedNotes/assets/actiontext.esm-c376325e.js">
+<link rel="modulepreload" href="/JottedNotes/assets/controllers/application-3affb389.js">
+<link rel="modulepreload" href="/JottedNotes/assets/controllers/hello_controller-708796bd.js">
+<link rel="modulepreload" href="/JottedNotes/assets/controllers/index-ee64e1f1.js">
+<link rel="modulepreload" href="/JottedNotes/assets/controllers/notes_controller-59eea74c.js">
+<script type="module">import "application"</script>
+  </head>
+
+  <body>
+    <div class="min-h-screen bg-jb-bg" data-controller="notes">
+  <button data-action="click->notes#toggleSidebar"
+          class="sidebar-toggle-btn fixed top-3 left-3 z-50 lg:hidden flex items-center justify-center"
+          type="button"
+          aria-label="Toggle sidebar">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+      <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+    </svg>
+  </button>
+
+  <div class="flex min-h-screen">
+    <div data-notes-target="sidebar" class="island-sidebar w-72 flex-shrink-0 flex flex-col p-4 m-3 sidebar-panel">
+  <div data-action="click->notes#toggleSidebar" class="sidebar-backdrop lg:hidden"></div>
+
+  <div class="flex items-center justify-between pb-3 mb-2 border-b border-jb-border">
+    <span class="text-xs font-semibold uppercase tracking-wider text-jb-muted">Project Notes</span>
+    <div class="flex items-center gap-2">
+      <button type="button" class="lg:hidden w-5 h-5 flex items-center justify-center text-jb-muted hover:text-jb-text" data-action="click->notes#toggleSidebar" aria-label="Close sidebar">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+      </button>
+      <button class="btn-jb-accent" data-action="click->notes#createNewNote">+ New Note</button>
+    </div>
+  </div>
+
+  <div data-notes-target="list" class="flex-1 overflow-auto">
+  </div>
+</div>
+
+
+    <div class="flex-1 flex flex-col p-3 lg:p-4 pt-14 lg:pt-4 min-w-0">
+      <div class="island-panel flex-1 flex flex-col p-4 lg:p-6 overflow-hidden">
+        <div data-notes-target="editor" class="hidden flex-1 flex flex-col min-h-0">
+  <input type="hidden" data-notes-target="id">
+
+  <div class="pb-3 mb-3 border-b border-jb-border flex-shrink-0">
+    <input type="text" data-notes-target="title" class="jb-input text-lg md:text-xl font-bold" placeholder="Untitled_Note.md">
+  </div>
+
+  <div class="flex-1 relative flex items-stretch min-h-0 gap-3">
+    <div class="relative flex flex-col flex-1 min-w-0">
+      <input type="hidden" id="note_content_hidden" data-notes-target="content">
+
+      <trix-editor input="note_content_hidden"
+                   class="trix-content font-mono flex-1"
+                   placeholder="// Start writing..."
+                   data-action="trix-change->notes#updateWordCount trix-initialize->notes#onTrixInit"></trix-editor>
+
+      <div class="flex items-center justify-between pt-2 mt-2 border-t border-jb-border flex-shrink-0">
+        <div data-notes-target="wordCount" class="status-pill relative bottom-auto right-auto">
+          0 words · 0 chars
+        </div>
+      </div>
+    </div>
+
+    <div class="relative flex-shrink-0">
+      <div class="island-dock">
+  <button class="dock-tool-btn" title="Highlight Color" data-action="click->notes#toggleColorMenu">
+    <svg viewBox="0 0 24 24"><path d="M18.36 5.64c-1.95-1.96-5.11-1.96-7.07 0L9.88 7.05 16.94 14.11 18.36 12.7c1.96-1.96 1.96-5.12 0-7.07zM8.46 8.46L3.34 13.57 10.41 20.69 15.53 15.57 8.46 8.46z"/></svg>
+  </button>
+
+  <div data-notes-target="colorMenu" data-action="click@window->notes#closeColorMenuOutside" class="color-menu" hidden>
+    <button type="button" class="color-swatch" style="background-color: rgba(255, 213, 79, 0.4);" data-action="click->notes#applyFormat" data-format-type="highlight" data-value="rgba(255, 213, 79, 0.4)" title="Yellow Highlighter"></button>
+    <button type="button" class="color-swatch" style="background-color: rgba(144, 202, 249, 0.4);" data-action="click->notes#applyFormat" data-format-type="highlight" data-value="rgba(144, 202, 249, 0.4)" title="Blue Highlighter"></button>
+    <button type="button" class="color-swatch" style="background-color: rgba(239, 154, 154, 0.4);" data-action="click->notes#applyFormat" data-format-type="highlight" data-value="rgba(239, 154, 154, 0.4)" title="Red Highlighter"></button>
+    <button type="button" class="color-swatch" style="background-color: rgba(165, 214, 167, 0.4);" data-action="click->notes#applyFormat" data-format-type="highlight" data-value="rgba(165, 214, 167, 0.4)" title="Green Highlighter"></button>
+  </div>
+
+  <div class="dock-divider"></div>
+
+  <button class="dock-tool-btn" title="Header Element" data-action="click->notes#applyFormat" data-format-type="heading1">
+    <svg viewBox="0 0 24 24"><path d="M19 12h-6V5h-2v7H5V5H3v14h2v-5h6v5h2v-5h6v5h2V5h-2z"/></svg>
+  </button>
+
+  <button class="dock-tool-btn" title="Bold Expression" data-action="click->notes#applyFormat" data-format-type="bold">
+    <svg viewBox="0 0 24 24"><path d="M15.6 10.79c.97-.67 1.65-1.77 1.65-2.79 0-2.26-1.75-4-4-4H7v14h7.04c2.09 0 3.71-1.7 3.71-3.79 0-1.52-.86-2.82-2.15-3.42zM10 6.5h3c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-3v-3zm3.5 11H10v-3h3.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5z"/></svg>
+  </button>
+
+  <button class="dock-tool-btn" title="Code Block Syntax" data-action="click->notes#applyFormat" data-format-type="code">
+    <svg viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
+  </button>
+
+  <div class="dock-divider"></div>
+
+  <button class="dock-tool-btn dock-scale-btn" title="Scale Up Font" data-action="click->notes#applyFormat" data-format-type="size" data-value="up">
+    <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+  </button>
+
+  <button class="dock-tool-btn dock-scale-btn" title="Scale Down Font" data-action="click->notes#applyFormat" data-format-type="size" data-value="down">
+    <svg viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"/></svg>
+  </button>
+</div>
+
+    </div>
+  </div>
+
+  <div class="flex items-center gap-2 pt-3 mt-3 border-t border-jb-border flex-shrink-0">
+    <button class="btn-jb-success" data-action="click->notes#saveNote">Commit Changes</button>
+    <button class="btn-jb-ghost" data-action="click->notes#deleteNote">Delete</button>
+  </div>
+</div>
+
+
+        <div data-notes-target="emptyState" class="flex-1 flex items-center justify-center">
+          <div class="text-center max-w-sm">
+            <div class="text-jb-muted mb-2 font-mono text-sm">JetBrains Notes v2026.1</div>
+            <p class="text-xs text-jb-muted leading-relaxed">Select an item from the project tree or create a new note to start editing.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("/JottedNotes/service-worker");
+      }
+    </script>
+  </body>
+</html>
