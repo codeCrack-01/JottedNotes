@@ -3,6 +3,11 @@
   "short_name": "Jotted",
   "icons": [
     {
+      "src": "<%= ENV.fetch("ASSET_PREFIX", "") %>/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
       "src": "<%= ENV.fetch("ASSET_PREFIX", "") %>/icon.png",
       "type": "image/png",
       "sizes": "512x512"

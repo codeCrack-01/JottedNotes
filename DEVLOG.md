@@ -1,5 +1,34 @@
 # Development Log
 
+## 2026-06-16 — Custom PWA icons (journal-pen "J" design, multiple sizes)
+
+### Summary
+Replaced the default 14×14 favicon with a custom vector-designed icon set featuring a "J" stylized as a journal/pen on a blue gradient rounded-square background. Generated SVG source and PNG renders at 512×512, 192×192, and 180×180. Updated the PWA manifest, layout, and export task to use the correct icon files at each size.
+
+### Key Implementation Details
+- **SVG design**: A bold white "J" with a dark fountain pen diagonally crossing it, on a JetBrains-accent-blue gradient rounded-square background. Simple vector style recognizable at all sizes (16×16 favicon to 512×512 PWA icon).
+- **Icon set**: Generated via Inkscape from a single SVG source:
+  - `public/icon.svg` (SVG source for favicon)
+  - `public/icon.png` (512×512 — primary PWA icon)
+  - `public/icon-192.png` (192×192 — Chrome install dialog icon)
+  - `public/icon-180.png` (180×180 — Apple touch icon)
+- **Manifest update**: Added a 192×192 entry as the first icon (Chrome uses the first suitable icon for the install prompt).
+- **Apple touch icon**: Changed from `icon.png` to `icon-180.png` for proper iOS home screen rendering.
+- **Export**: Added `icon-192.png` and `icon-180.png` to the `pages.rake` static asset copy list.
+
+### Files Modified
+| File | Change |
+|------|--------|
+| `public/icon.png` | Replaced 14×14 placeholder with 512×512 render of new design |
+| `public/icon.svg` | Replaced with new journal-pen "J" SVG design |
+| `public/icon-192.png` | **Created** — 192×192 PWA icon |
+| `public/icon-180.png` | **Created** — 180×180 Apple touch icon |
+| `app/views/pwa/manifest.json.erb` | Added 192×192 icon entry as first icon |
+| `app/views/layouts/application.html.erb` | apple-touch-icon → `icon-180.png` |
+| `lib/tasks/pages.rake` | Added `icon-192.png` and `icon-180.png` to copy list |
+
+---
+
 ## 2026-06-16 — GitHub Pages deployment pipeline (removed Vercel, added prefix-aware static export)
 
 ### Summary
