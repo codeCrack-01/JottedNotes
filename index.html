@@ -13,11 +13,11 @@
 
     <link rel="manifest" href="/JottedNotes/manifest.json">
 
-    <link rel="icon" href="/JottedNotes/icon.png" type="image/png">
+    <link rel="icon" href="/JottedNotes/icon-32.png" type="image/png" sizes="32x32">
     <link rel="icon" href="/JottedNotes/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/JottedNotes/icon-180.png">
 
-    <link rel="stylesheet" href="/JottedNotes/assets/tailwind-7a057987.css" data-turbo-track="reload" />
+    <link rel="stylesheet" href="/JottedNotes/assets/tailwind-1447bf6c.css" data-turbo-track="reload" />
     <script type="importmap" data-turbo-track="reload">{
   "imports": {
     "application": "/JottedNotes/assets/application-30b31416.js",
@@ -29,7 +29,8 @@
     "controllers/application": "/JottedNotes/assets/controllers/application-3affb389.js",
     "controllers/hello_controller": "/JottedNotes/assets/controllers/hello_controller-708796bd.js",
     "controllers": "/JottedNotes/assets/controllers/index-ee64e1f1.js",
-    "controllers/notes_controller": "/JottedNotes/assets/controllers/notes_controller-59eea74c.js"
+    "controllers/notes_controller": "/JottedNotes/assets/controllers/notes_controller-59eea74c.js",
+    "controllers/pwa_install_controller": "/JottedNotes/assets/controllers/pwa_install_controller-e58e0222.js"
   }
 }</script>
 <link rel="modulepreload" href="/JottedNotes/assets/application-30b31416.js">
@@ -42,6 +43,7 @@
 <link rel="modulepreload" href="/JottedNotes/assets/controllers/hello_controller-708796bd.js">
 <link rel="modulepreload" href="/JottedNotes/assets/controllers/index-ee64e1f1.js">
 <link rel="modulepreload" href="/JottedNotes/assets/controllers/notes_controller-59eea74c.js">
+<link rel="modulepreload" href="/JottedNotes/assets/controllers/pwa_install_controller-e58e0222.js">
 <script type="module">import "application"</script>
   </head>
 
@@ -161,6 +163,16 @@
   </div>
 </div>
 
+
+    <div data-controller="pwa-install">
+      <div data-pwa-install-target="banner" class="hidden">
+        <div class="install-banner">
+          <span class="text-sm font-medium text-jb-text">Install Jotted</span>
+          <button data-action="pwa-install#install" class="btn-jb-accent text-xs px-3 py-[5px]">Install</button>
+          <button data-action="pwa-install#dismiss" class="install-banner-close">&times;</button>
+        </div>
+      </div>
+    </div>
 
     <script>
       if ("serviceWorker" in navigator) {
