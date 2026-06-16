@@ -41,6 +41,8 @@ Your site will be live at `https://codeCrack-01.github.io/JottedNotes/`.
 3. Ensure **Read and write permissions** is selected
 4. Check **Allow GitHub Actions to create and approve pull requests**
 
+*The workflow also sets `permissions: contents: write` at the job level, which grants `GITHUB_TOKEN` the ability to push to `gh-pages`. If you use a different deploy action or a custom PAT, adjust accordingly.*
+
 ---
 
 ## Building and Deploying
