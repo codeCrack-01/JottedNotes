@@ -1,5 +1,33 @@
 # Development Log
 
+## 2026-06-16 — PWA install banner + favicon fix
+
+### Summary
+Fixed the browser tab icon (was showing a red circle from the old 14×14 placeholder) by generating proper 32×32 and 16×16 favicon PNGs and updating the HTML to use them as the primary favicon. Added a PWA install banner (Stimulus controller) that appears when Chrome fires `beforeinstallprompt`, giving users a visible "Install Jotted" button — essential for mobile users who won't know to use the browser's install menu.
+
+### Key Implementation Details
+- **Favicon fix**: Added `<link rel="icon" sizes="32x32">` pointing to a crisp 32×32 PNG render of the journal-pen "J" design. Kept the SVG as a secondary option for modern browsers that support SVG favicons.
+- **PWA install controller** (`pwa_install_controller.js`):
+  - Listens for `beforeinstallprompt` on `window` — prevents default mini-infobar, shows custom banner
+  - Listens for `appinstalled` to hide the banner after successful install
+  - Checks `display-mode: standalone` on connect — if already installed, removes the banner element entirely
+  - `install()` calls `prompt()` on the stored deferred prompt; `dismiss()` hides the banner
+  - Follows existing Stimulus controller conventions (static targets, lifecycle methods, `.bind(this)` for event handlers)
+- **Install banner UI**: Glassmorphism pill fixed at bottom-center of viewport, matching the JetBrains Island aesthetic (blurred white background, 16px radius, subtle shadow). Uses an `.install-banner` CSS class with a slide-up fade-in animation.
+- **Exported assets**: Added `icon-32.png` and `icon-16.png` to `pages.rake` copy list.
+
+### Files Modified
+| File | Change |
+|------|--------|
+| `public/icon-32.png` | **Created** — 32×32 PNG favicon |
+| `public/icon-16.png` | **Created** — 16×16 PNG favicon (legacy fallback) |
+| `app/javascript/controllers/pwa_install_controller.js` | **Created** — Stimulus controller for `beforeinstallprompt` handling |
+| `app/views/layouts/application.html.erb` | Replaced `icon.png` favicon with `icon-32.png` + `sizes="32x32"`; added install banner HTML with data-controller/targets/actions |
+| `app/assets/tailwind/application.css` | Added `.install-banner` class and `@keyframes install-banner-in` animation; added `.install-banner-close` hover style |
+| `lib/tasks/pages.rake` | Added `icon-32.png` and `icon-16.png` to static asset copy list |
+
+---
+
 ## 2026-06-16 — Custom PWA icons (journal-pen "J" design, multiple sizes)
 
 ### Summary

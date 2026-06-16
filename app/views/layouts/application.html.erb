@@ -13,7 +13,7 @@
 
     <link rel="manifest" href="<%= ENV.fetch("ASSET_PREFIX", "") %>/manifest.json">
 
-    <link rel="icon" href="<%= ENV.fetch("ASSET_PREFIX", "") %>/icon.png" type="image/png">
+    <link rel="icon" href="<%= ENV.fetch("ASSET_PREFIX", "") %>/icon-32.png" type="image/png" sizes="32x32">
     <link rel="icon" href="<%= ENV.fetch("ASSET_PREFIX", "") %>/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="<%= ENV.fetch("ASSET_PREFIX", "") %>/icon-180.png">
 
@@ -23,6 +23,16 @@
 
   <body>
     <%= yield %>
+
+    <div data-controller="pwa-install">
+      <div data-pwa-install-target="banner" class="hidden">
+        <div class="install-banner">
+          <span class="text-sm font-medium text-jb-text">Install Jotted</span>
+          <button data-action="pwa-install#install" class="btn-jb-accent text-xs px-3 py-[5px]">Install</button>
+          <button data-action="pwa-install#dismiss" class="install-banner-close">&times;</button>
+        </div>
+      </div>
+    </div>
 
     <script>
       if ("serviceWorker" in navigator) {

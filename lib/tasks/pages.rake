@@ -43,7 +43,7 @@ namespace :pages do
     ENV.delete("PRECACHE_ASSETS") if ENV["PRECACHE_ASSETS"]
 
     # Copy static assets (icons, offline page)
-    %w[icon.png icon-192.png icon-180.png icon.svg offline.html].each do |file|
+    %w[icon.png icon-192.png icon-180.png icon-32.png icon-16.png icon.svg offline.html].each do |file|
       src = Rails.root.join("public", file)
       if File.exist?(src)
         FileUtils.cp(src, output_dir.join(file))
