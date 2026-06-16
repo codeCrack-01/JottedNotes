@@ -3,6 +3,11 @@
   "short_name": "Jotted",
   "icons": [
     {
+      "src": "/JottedNotes/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
       "src": "/JottedNotes/icon.png",
       "type": "image/png",
       "sizes": "512x512"
