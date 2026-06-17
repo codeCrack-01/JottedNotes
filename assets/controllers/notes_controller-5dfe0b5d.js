@@ -180,8 +180,8 @@ export default class extends Controller {
       case "bold":
         editor.attributeIsActive("bold") ? editor.deactivateAttribute("bold") : editor.activateAttribute("bold")
         break
-      case "heading1":
-        editor.attributeIsActive("heading1") ? editor.deactivateAttribute("heading1") : editor.activateAttribute("heading1")
+      case "number":
+        editor.attributeIsActive("number") ? editor.deactivateAttribute("number") : editor.activateAttribute("number")
         break
       case "code":
         editor.attributeIsActive("code") ? editor.deactivateAttribute("code") : editor.activateAttribute("code")
