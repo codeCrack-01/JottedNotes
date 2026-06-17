@@ -1,5 +1,24 @@
 # Development Log
 
+## 2026-06-17 — Heading button replaced with ordered list; fixed code/list visibility
+
+### Summary
+Replaced the heading (H1) button in the floating dock with an ordered list button. Also fixed two visibility issues: Tailwind v4's preflight reset was stripping `list-style` from `<ol>` elements (making lists invisible), and `font-mono` on the editor made inline code indistinguishable from regular text. Added Trix editor CSS to restore list styling, add code block visual styling, and removed `font-mono` from the editor so code stands out.
+
+### Files Modified
+| File | Change |
+|------|--------|
+| `app/views/home/_floating_dock.html.erb` | Replaced heading1 button with ordered list button (SVG icon, title, `data-format-type="number"`) |
+| `app/javascript/controllers/notes_controller.js` | Replaced `heading1` case with `number` case in `applyFormat` switch — toggles Trix's built-in `number` attribute |
+| `app/assets/tailwind/application.css` | Added Trix content styles for `<ol>` (decimal list-style), `<ul>` (disc), `<li>` (list-item), `<pre>` (code blocks with background/border/monospace), and `<code>` (inline code with background highlight) |
+| `app/views/home/_editor_canvas.html.erb` | Removed `font-mono` class from editor so code (monospace) is distinguishable from base sans-serif text |
+
+### Known Issues / Follow-up
+- Trix does not natively ship a "numbered list" button; this adds it via the existing dock toggle pattern
+- The `number` attribute inherits Trix's built-in list behavior: Enter continues the list, Backspace on empty removes ordering
+
+---
+
 ## 2026-06-16 — Read-only view toggle
 
 ### Summary
